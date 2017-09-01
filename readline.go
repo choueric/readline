@@ -11,7 +11,6 @@ const (
 
 func printPrompt(inst *Instance) {
 	inst.Printf(PROMPT)
-	inst.Flush()
 }
 
 func helpHandler(inst *Instance) {
@@ -23,24 +22,39 @@ func helpHandler(inst *Instance) {
 }
 
 func executeCmdline(inst *Instance, line []byte) int {
-	cmdline := strings.Trim(string(line), " ")
-	inst.Log("[%s]\n", cmdline)
+	ret := 0
+	cmdline := strings.Fields(string(line))
+	if len(cmdline) == 0 {
+		inst.Log("parse input line failed: %s", string(line))
+		return ret
+	}
+	inst.Log("[%v]\n", cmdline)
 
-	switch cmdline {
+	switch cmdline[0] {
 	case "help":
 		helpHandler(inst)
 	case "exit", "quit":
 		return 1
 	default:
+		var cmd *Cmd
+		for _, c := range inst.cmds {
+			if cmdline[0] == c.name {
+				cmd = c
+			}
+		}
+		if cmd != nil {
+			cmd.handler(cmdline)
+		} else {
+			helpHandler(inst)
+		}
 	}
 
-	return 0
+	return ret
 }
 
 func handleTab(inst *Instance, line []byte) {
 	inst.Log(" autocomplete \n")
 	inst.Printf("%s%s", PROMPT, string(line))
-	inst.Flush()
 }
 
 func inputLoop(inst *Instance) {
@@ -52,7 +66,6 @@ func inputLoop(inst *Instance) {
 		if err != nil {
 			if err == io.EOF {
 				inst.Printf("got EOF\n")
-				inst.Flush()
 			} else {
 				inst.Printf("error: %v", err)
 			}
@@ -69,7 +82,6 @@ func inputLoop(inst *Instance) {
 		case CharEOF:
 			if len(line) == 0 {
 				inst.Printf("\ngot EOF(Ctrl+D)\n")
-				inst.Flush()
 				end = true
 			} else {
 				line = line[0:0]
@@ -89,7 +101,6 @@ func inputLoop(inst *Instance) {
 		default:
 			line = append(line, c)
 			inst.Printf("%c", c)
-			inst.Flush()
 		}
 	}
 }
