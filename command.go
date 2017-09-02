@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"os"
 )
 
 type HandleFunc func([]string) error
@@ -14,9 +15,29 @@ type Cmd struct {
 }
 
 type Instance struct {
-	cmds []*Cmd
-	w    *bufio.Writer
-	r    *bufio.Reader
+	cmds     []*Cmd
+	w        *bufio.Writer
+	r        *bufio.Reader
+	fd       int
+	oldState *State
+}
+
+func (inst *Instance) Init(in *os.File, out *os.File) error {
+	inst.fd = int(in.Fd())
+	oldState, err := MakeRaw(inst.fd)
+	if err != nil {
+		panic(err)
+		return err
+	}
+
+	inst.r = bufio.NewReader(in)
+	inst.w = bufio.NewWriter(out)
+	inst.oldState = oldState
+	return nil
+}
+
+func (inst *Instance) Deinit() {
+	restoreTerm(inst.fd, inst.oldState)
 }
 
 func (inst *Instance) AddCmd(cmd *Cmd) error {
