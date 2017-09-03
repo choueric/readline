@@ -26,7 +26,7 @@ func backspaceHandler(inst *Instance) bool {
 }
 
 func enterHandler(inst *Instance) bool {
-	end := executeCmdline(inst, inst.line)
+	end := executeCmdline(inst)
 	if !end {
 		inst.clearLine()
 		inst.printPrompt()
