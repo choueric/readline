@@ -14,7 +14,7 @@ var inputMap = map[byte]inputHandler{
 
 func interruptHandler(inst *Instance) bool {
 	inst.Printf("\ngot Interrupt(Ctrl+C)\n")
-	inst.line = inst.line[0:0]
+	inst.clearLine()
 	inst.printPrompt()
 	return false
 }
@@ -28,14 +28,19 @@ func backspaceHandler(inst *Instance) bool {
 func enterHandler(inst *Instance) bool {
 	end := executeCmdline(inst, inst.line)
 	if !end {
-		inst.line = inst.line[0:0]
+		inst.clearLine()
 		inst.printPrompt()
 	}
 	return end
 }
 
 func tabHandler(inst *Instance) bool {
-	inst.Log(" autocomplete \n")
+	if len(inst.line) == 0 {
+		acAllCmds(inst)
+		goto DONE
+	}
+
+DONE:
 	inst.Printf("%s%s", inst.prompt, string(inst.line))
 	return false
 }
@@ -45,7 +50,7 @@ func eofHandler(inst *Instance) bool {
 		inst.Printf("\ngot EOF(Ctrl+D)\n")
 		return true
 	}
-	inst.line = inst.line[0:0]
+	inst.clearLine()
 	inst.printPrompt()
 	return false
 }
