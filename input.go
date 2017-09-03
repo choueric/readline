@@ -42,22 +42,19 @@ func enterHandler(inst *Instance) bool {
 }
 
 func tabHandler(inst *Instance) bool {
-	var cmdline []string
-
 	line := strings.Trim(string(inst.line), " ")
 	if len(line) == 0 {
 		acAllCmds(inst)
-		goto DONE
-	}
-
-	cmdline = strings.Fields(string(line))
-	if len(cmdline) == 0 {
-		inst.Log("parse input line [%s] failed\n", string(line))
+		inst.Printf("%s%s", inst.prompt, string(inst.line))
 		return false
 	}
 
-DONE:
-	inst.Printf("%s%s", inst.prompt, string(inst.line))
+	args := strings.Fields(string(line))
+	if len(args) != 0 {
+		acOneCmd(inst, args)
+		return false
+	}
+
 	return false
 }
 
