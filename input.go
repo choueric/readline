@@ -20,6 +20,9 @@ func interruptHandler(inst *Instance) bool {
 }
 
 func backspaceHandler(inst *Instance) bool {
+	if len(inst.line) == 0 {
+		return false
+	}
 	inst.Print("\b \b")
 	inst.line = inst.line[0 : len(inst.line)-1]
 	return false
