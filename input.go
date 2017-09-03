@@ -1,9 +1,6 @@
 package main
 
-import (
-	"io"
-	"strings"
-)
+import "io"
 
 type inputHandler func(*Instance) bool
 
@@ -51,35 +48,6 @@ func eofHandler(inst *Instance) bool {
 	inst.line = inst.line[0:0]
 	inst.printPrompt()
 	return false
-}
-
-func executeCmdline(inst *Instance, line []byte) bool {
-	ret := false
-	if len(line) == 0 {
-		return false
-	}
-	cmdline := strings.Fields(string(line))
-	if len(cmdline) == 0 {
-		inst.Log("parse input line [%s] failed\n", string(line))
-		return ret
-	}
-	inst.Log("[%v]\n", cmdline)
-
-	switch cmdline[0] {
-	case "help":
-		helpHandler(cmdline, inst)
-	case "exit", "quit":
-		return true
-	default:
-		c, ok := inst.cmds[cmdline[0]]
-		if ok {
-			c.handler(cmdline, c.data)
-		} else {
-			helpHandler(cmdline, inst)
-		}
-	}
-
-	return ret
 }
 
 func inputLoop(inst *Instance) {
