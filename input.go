@@ -5,14 +5,6 @@ import (
 	"strings"
 )
 
-const (
-	PROMPT = ">> "
-)
-
-func printPrompt(inst *Instance) {
-	inst.Printf(PROMPT)
-}
-
 func helpHandler(inst *Instance) {
 	inst.Println("Help:")
 	for _, c := range inst.cmds {
@@ -54,12 +46,12 @@ func executeCmdline(inst *Instance, line []byte) int {
 
 func handleTab(inst *Instance, line []byte) {
 	inst.Log(" autocomplete \n")
-	inst.Printf("%s%s", PROMPT, string(line))
+	inst.Printf("%s%s", inst.prompt, string(line))
 }
 
 func inputLoop(inst *Instance) {
 	line := make([]byte, 0)
-	printPrompt(inst)
+	inst.printPrompt()
 	end := false
 	for !end {
 		c, err := inst.r.ReadByte()
@@ -78,7 +70,7 @@ func inputLoop(inst *Instance) {
 			inst.Printf("\ngot Interrupt(Ctrl+C)\n")
 			line = line[0:0]
 			inst.Printf("\n")
-			printPrompt(inst)
+			inst.printPrompt()
 		case CharEOF:
 			if len(line) == 0 {
 				inst.Printf("\ngot EOF(Ctrl+D)\n")
@@ -86,7 +78,7 @@ func inputLoop(inst *Instance) {
 			} else {
 				line = line[0:0]
 				inst.Printf("\n")
-				printPrompt(inst)
+				inst.printPrompt()
 			}
 		case CharEnter:
 			ret := executeCmdline(inst, line)
@@ -95,7 +87,7 @@ func inputLoop(inst *Instance) {
 				break
 			}
 			line = line[0:0]
-			printPrompt(inst)
+			inst.printPrompt()
 		case CharTab:
 			handleTab(inst, line)
 		case CharBackspace:

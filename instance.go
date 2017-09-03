@@ -20,6 +20,7 @@ type Instance struct {
 	r        *bufio.Reader
 	fd       int
 	oldState *State
+	prompt   string
 }
 
 func (inst *Instance) Init(in *os.File, out *os.File) error {
@@ -44,6 +45,10 @@ func (inst *Instance) AddCmd(cmd *Cmd) error {
 	inst.cmds = append(inst.cmds, cmd)
 
 	return nil
+}
+
+func (inst *Instance) printPrompt() {
+	inst.Printf(inst.prompt)
 }
 
 func (inst *Instance) Printf(format string, v ...interface{}) {

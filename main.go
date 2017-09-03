@@ -12,7 +12,9 @@ func lsHandler(args []string) error {
 }
 
 func main() {
-	inst := &Instance{}
+	inst := &Instance{
+		prompt: "\033[32m>>\033[0m ",
+	}
 	inst.Init(os.Stdin, os.Stdout)
 	defer inst.Deinit()
 
