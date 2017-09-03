@@ -6,7 +6,13 @@ import (
 )
 
 func lsHandler(args []string, data interface{}) error {
-	fmt.Println("= lsHandler =")
+	fmt.Println("= ls =")
+
+	return nil
+}
+
+func echoHandler(args []string, data interface{}) error {
+	fmt.Println("= echo =")
 
 	return nil
 }
@@ -19,6 +25,7 @@ func main() {
 	defer inst.Deinit()
 
 	inst.AddCmd("ls", &Cmd{"list files and directory", lsHandler, nil})
+	inst.AddCmd("echo", &Cmd{"echo what you input", echoHandler, nil})
 
 	inputLoop(inst)
 }
