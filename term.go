@@ -10,6 +10,7 @@ const (
 	CharEOF       = 4    // Ctrl+D
 	CharTab       = '\t' // 9
 	CharEnter     = '\r' // 13
+	CharBackspace = 127
 )
 
 type State struct {

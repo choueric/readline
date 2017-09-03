@@ -98,6 +98,9 @@ func inputLoop(inst *Instance) {
 			printPrompt(inst)
 		case CharTab:
 			handleTab(inst, line)
+		case CharBackspace:
+			inst.Print("\b \b")
+			line = line[0 : len(line)-1]
 		default:
 			line = append(line, c)
 			inst.Printf("%c", c)
