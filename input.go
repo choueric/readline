@@ -1,6 +1,9 @@
 package main
 
-import "io"
+import (
+	"io"
+	"strings"
+)
 
 type inputHandler func(*Instance) bool
 
@@ -29,7 +32,8 @@ func backspaceHandler(inst *Instance) bool {
 }
 
 func enterHandler(inst *Instance) bool {
-	end := executeCmdline(inst)
+	line := strings.Trim(string(inst.line), " ")
+	end := executeCmdline(inst, []byte(line))
 	if !end {
 		inst.clearLine()
 		inst.printPrompt()
@@ -38,9 +42,18 @@ func enterHandler(inst *Instance) bool {
 }
 
 func tabHandler(inst *Instance) bool {
-	if len(inst.line) == 0 {
+	var cmdline []string
+
+	line := strings.Trim(string(inst.line), " ")
+	if len(line) == 0 {
 		acAllCmds(inst)
 		goto DONE
+	}
+
+	cmdline = strings.Fields(string(line))
+	if len(cmdline) == 0 {
+		inst.Log("parse input line [%s] failed\n", string(line))
+		return false
 	}
 
 DONE:

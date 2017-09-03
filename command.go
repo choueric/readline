@@ -21,13 +21,13 @@ func helpHandler(args []string, data interface{}) error {
 	return nil
 }
 
-func executeCmdline(inst *Instance) bool {
-	if len(inst.line) == 0 {
+func executeCmdline(inst *Instance, line []byte) bool {
+	if len(line) == 0 {
 		return false
 	}
-	cmdline := strings.Fields(string(inst.line))
+	cmdline := strings.Fields(string(line))
 	if len(cmdline) == 0 {
-		inst.Log("parse input line [%s] failed\n", string(inst.line))
+		inst.Log("parse input line [%s] failed\n", string(line))
 		return false
 	}
 	inst.Log("[%v]\n", cmdline)
