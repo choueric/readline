@@ -18,7 +18,6 @@ var inputMap = map[byte]inputHandler{
 func interruptHandler(inst *Instance) bool {
 	inst.Printf("\ngot Interrupt(Ctrl+C)\n")
 	inst.line = inst.line[0:0]
-	inst.Printf("\n")
 	inst.printPrompt()
 	return false
 }
@@ -30,12 +29,12 @@ func backspaceHandler(inst *Instance) bool {
 }
 
 func enterHandler(inst *Instance) bool {
-	if executeCmdline(inst, inst.line) != 0 {
-		return true
+	end := executeCmdline(inst, inst.line)
+	if !end {
+		inst.line = inst.line[0:0]
+		inst.printPrompt()
 	}
-	inst.line = inst.line[0:0]
-	inst.printPrompt()
-	return false
+	return end
 }
 
 func tabHandler(inst *Instance) bool {
@@ -50,7 +49,6 @@ func eofHandler(inst *Instance) bool {
 		return true
 	}
 	inst.line = inst.line[0:0]
-	inst.Printf("\n")
 	inst.printPrompt()
 	return false
 }
@@ -63,11 +61,14 @@ func helpHandler(inst *Instance) {
 	inst.Print("  exit, help: exit program\n")
 }
 
-func executeCmdline(inst *Instance, line []byte) int {
-	ret := 0
+func executeCmdline(inst *Instance, line []byte) bool {
+	ret := false
+	if len(line) == 0 {
+		return false
+	}
 	cmdline := strings.Fields(string(line))
 	if len(cmdline) == 0 {
-		inst.Log("parse input line failed: %s", string(line))
+		inst.Log("parse input line [%s] failed\n", string(line))
 		return ret
 	}
 	inst.Log("[%v]\n", cmdline)
@@ -76,7 +77,7 @@ func executeCmdline(inst *Instance, line []byte) int {
 	case "help":
 		helpHandler(inst)
 	case "exit", "quit":
-		return 1
+		return true
 	default:
 		var cmd *Cmd
 		for _, c := range inst.cmds {

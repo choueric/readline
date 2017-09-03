@@ -49,7 +49,7 @@ func (inst *Instance) AddCmd(cmd *Cmd) error {
 }
 
 func (inst *Instance) printPrompt() {
-	inst.Printf(inst.prompt)
+	inst.Print("\n" + inst.prompt)
 }
 
 func (inst *Instance) Printf(format string, v ...interface{}) {
