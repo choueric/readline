@@ -50,7 +50,6 @@ func handleTab(inst *Instance, line []byte) {
 }
 
 func inputLoop(inst *Instance) {
-	line := make([]byte, 0)
 	inst.printPrompt()
 	end := false
 	for !end {
@@ -68,33 +67,33 @@ func inputLoop(inst *Instance) {
 		switch c {
 		case CharInterrupt:
 			inst.Printf("\ngot Interrupt(Ctrl+C)\n")
-			line = line[0:0]
+			inst.line = inst.line[0:0]
 			inst.Printf("\n")
 			inst.printPrompt()
 		case CharEOF:
-			if len(line) == 0 {
+			if len(inst.line) == 0 {
 				inst.Printf("\ngot EOF(Ctrl+D)\n")
 				end = true
 			} else {
-				line = line[0:0]
+				inst.line = inst.line[0:0]
 				inst.Printf("\n")
 				inst.printPrompt()
 			}
 		case CharEnter:
-			ret := executeCmdline(inst, line)
+			ret := executeCmdline(inst, inst.line)
 			if ret != 0 {
 				end = true
 				break
 			}
-			line = line[0:0]
+			inst.line = inst.line[0:0]
 			inst.printPrompt()
 		case CharTab:
-			handleTab(inst, line)
+			handleTab(inst, inst.line)
 		case CharBackspace:
 			inst.Print("\b \b")
-			line = line[0 : len(line)-1]
+			inst.line = inst.line[0 : len(inst.line)-1]
 		default:
-			line = append(line, c)
+			inst.line = append(inst.line, c)
 			inst.Printf("%c", c)
 		}
 	}

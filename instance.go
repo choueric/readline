@@ -16,6 +16,7 @@ type Cmd struct {
 
 type Instance struct {
 	cmds     []*Cmd
+	line     []byte
 	w        *bufio.Writer
 	r        *bufio.Reader
 	fd       int
