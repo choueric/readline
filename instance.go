@@ -6,16 +6,8 @@ import (
 	"os"
 )
 
-type HandleFunc func([]string) error
-
-type Cmd struct {
-	name     string
-	synopsis string
-	handler  HandleFunc
-}
-
 type Instance struct {
-	cmds     []*Cmd
+	cmds     map[string]*Cmd
 	line     []byte
 	w        *bufio.Writer
 	r        *bufio.Reader
@@ -35,6 +27,11 @@ func (inst *Instance) Init(in *os.File, out *os.File) error {
 	inst.r = bufio.NewReader(in)
 	inst.w = bufio.NewWriter(out)
 	inst.oldState = oldState
+
+	inst.cmds = make(map[string]*Cmd)
+	inst.AddCmd("help", &Cmd{"print this message", helpHandler, inst})
+	inst.AddCmd("exit", &Cmd{"exit programe", nil, nil})
+	inst.AddCmd("quit", &Cmd{"exit programe", nil, nil})
 	return nil
 }
 
@@ -42,9 +39,8 @@ func (inst *Instance) Deinit() {
 	restoreTerm(inst.fd, inst.oldState)
 }
 
-func (inst *Instance) AddCmd(cmd *Cmd) error {
-	inst.cmds = append(inst.cmds, cmd)
-
+func (inst *Instance) AddCmd(name string, cmd *Cmd) error {
+	inst.cmds[name] = cmd
 	return nil
 }
 

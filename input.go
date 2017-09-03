@@ -53,14 +53,6 @@ func eofHandler(inst *Instance) bool {
 	return false
 }
 
-func helpHandler(inst *Instance) {
-	inst.Println("Help:")
-	for _, c := range inst.cmds {
-		inst.Printf("  %s: %s\n", c.name, c.synopsis)
-	}
-	inst.Print("  exit, help: exit program\n")
-}
-
 func executeCmdline(inst *Instance, line []byte) bool {
 	ret := false
 	if len(line) == 0 {
@@ -75,20 +67,15 @@ func executeCmdline(inst *Instance, line []byte) bool {
 
 	switch cmdline[0] {
 	case "help":
-		helpHandler(inst)
+		helpHandler(cmdline, inst)
 	case "exit", "quit":
 		return true
 	default:
-		var cmd *Cmd
-		for _, c := range inst.cmds {
-			if cmdline[0] == c.name {
-				cmd = c
-			}
-		}
-		if cmd != nil {
-			cmd.handler(cmdline)
+		c, ok := inst.cmds[cmdline[0]]
+		if ok {
+			c.handler(cmdline, c.data)
 		} else {
-			helpHandler(inst)
+			helpHandler(cmdline, inst)
 		}
 	}
 
@@ -104,7 +91,7 @@ func inputLoop(inst *Instance) {
 			if err == io.EOF {
 				inst.Printf("got EOF\n")
 			} else {
-				inst.Printf("error: %v", err)
+				inst.Printf("error: %v\n", err)
 			}
 			end = true
 		}

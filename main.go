@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func lsHandler(args []string) error {
+func lsHandler(args []string, data interface{}) error {
 	fmt.Println("= lsHandler =")
 
 	return nil
@@ -18,7 +18,7 @@ func main() {
 	inst.Init(os.Stdin, os.Stdout)
 	defer inst.Deinit()
 
-	inst.AddCmd(&Cmd{"ls", "list files and directory", lsHandler})
+	inst.AddCmd("ls", &Cmd{"list files and directory", lsHandler, nil})
 
 	inputLoop(inst)
 }
