@@ -4,10 +4,21 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
-func executeCmdline(cmdline string, data interface{}) bool {
-	fmt.Printf("\nexecute [%v]\n", cmdline)
+func executeCmdline(line string, data interface{}) bool {
+	cmdline := strings.Fields(line)
+	if len(cmdline) == 0 {
+		fmt.Printf("invalid command [%s]\n", line)
+		return false
+	}
+	switch cmdline[0] {
+	case "exit":
+		return true
+	default:
+		fmt.Printf("\nexecute [%v]\n", cmdline)
+	}
 	return false
 }
 
@@ -33,7 +44,7 @@ func main() {
 				Item("verbose"),
 			),
 		),
-		Item("echo"),
+		Item("exit"),
 		Item("help"),
 	)
 	inst.PrintTree(os.Stdout)
