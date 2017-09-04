@@ -6,14 +6,18 @@ import (
 	"os"
 )
 
+type ExecuteFunc func(line string, data interface{}) bool
+
 type Instance struct {
-	cmds     map[string]*Cmd
+	cmdRoot  *Cmd
 	line     []byte
 	w        *bufio.Writer
 	r        *bufio.Reader
 	fd       int
 	oldState *State
 	prompt   string
+	execute  ExecuteFunc
+	data     interface{}
 }
 
 func (inst *Instance) Init(in *os.File, out *os.File) error {
@@ -28,10 +32,6 @@ func (inst *Instance) Init(in *os.File, out *os.File) error {
 	inst.w = bufio.NewWriter(out)
 	inst.oldState = oldState
 
-	inst.cmds = make(map[string]*Cmd)
-	inst.AddCmd("help", &Cmd{"print this message", helpHandler, inst})
-	inst.AddCmd("exit", &Cmd{"exit programe", nil, nil})
-	inst.AddCmd("quit", &Cmd{"exit programe", nil, nil})
 	return nil
 }
 
@@ -39,9 +39,16 @@ func (inst *Instance) Deinit() {
 	restoreTerm(inst.fd, inst.oldState)
 }
 
-func (inst *Instance) AddCmd(name string, cmd *Cmd) error {
-	inst.cmds[name] = cmd
-	return nil
+func (inst *Instance) SetCmds(cmds ...*Cmd) {
+	inst.cmdRoot = &Cmd{
+		name: "",
+		subs: cmds,
+	}
+}
+
+func (inst *Instance) SetExecute(f ExecuteFunc, data interface{}) {
+	inst.execute = f
+	inst.data = data
 }
 
 func (inst *Instance) printPrompt() {

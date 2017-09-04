@@ -1,51 +1,58 @@
 package main
 
-import "strings"
-
-type CmdHandler func([]string, interface{}) error
+import (
+	"fmt"
+	"io"
+)
 
 type Cmd struct {
-	synopsis string
-	handler  CmdHandler
-	data     interface{}
+	name string
+	subs []*Cmd
 }
 
-// TODO: sort the commands
-func helpHandler(args []string, data interface{}) error {
-	inst := data.(*Instance)
-	inst.Println("Help:")
-	for n, c := range inst.cmds {
-		inst.Printf("  %s: %s\n", n, c.synopsis)
+func Item(name string, subs ...*Cmd) *Cmd {
+	return &Cmd{
+		name: name,
+		subs: subs,
 	}
-
-	return nil
 }
 
-func executeCmdline(inst *Instance, line []byte) bool {
-	if len(line) == 0 {
-		return false
-	}
-	cmdline := strings.Fields(string(line))
-	if len(cmdline) == 0 {
-		inst.Log("parse input line [%s] failed\n", string(line))
-		return false
-	}
-	inst.Log("[%v]\n", cmdline)
-
-	switch cmdline[0] {
-	case "help":
-		helpHandler(cmdline, inst)
-	case "exit", "quit":
-		return true
-	default:
-		c, ok := inst.cmds[cmdline[0]]
-		if ok {
-			c.handler(cmdline, c.data)
+func (cmd *Cmd) doPrintTree(w io.Writer, depth int, hasSibling []bool) {
+	for i := 0; i < depth; i++ {
+		if i != depth-1 {
+			if hasSibling[i] {
+				fmt.Fprintf(w, "│   ")
+			} else {
+				fmt.Fprintf(w, "    ")
+			}
 		} else {
-			inst.Printf("Invalid command [%s]\n", cmdline[0])
-			helpHandler(cmdline, inst)
+			if hasSibling[i] {
+				fmt.Fprintln(w, "├── "+cmd.name)
+			} else {
+				fmt.Fprintln(w, "└── "+cmd.name)
+			}
 		}
 	}
 
-	return false
+	if depth == 0 {
+		fmt.Fprintln(w, cmd.name)
+	}
+
+	length := len(cmd.subs)
+	for i, sub := range cmd.subs {
+		if i == length-1 {
+			hasSibling = append(hasSibling, false)
+		} else {
+			hasSibling = append(hasSibling, true)
+		}
+
+		sub.doPrintTree(w, depth+1, hasSibling)
+		hasSibling = append(hasSibling[:len(hasSibling)-1])
+	}
+}
+
+// PrintTree prints the tree graphic started from cmd.
+func (cmd *Cmd) PrintTree(w io.Writer) {
+	var hasSibling []bool
+	cmd.doPrintTree(w, 0, hasSibling)
 }

@@ -5,16 +5,9 @@ import (
 	"os"
 )
 
-func lsHandler(args []string, data interface{}) error {
-	fmt.Println("= ls =")
-
-	return nil
-}
-
-func echoHandler(args []string, data interface{}) error {
-	fmt.Println("= echo =")
-
-	return nil
+func executeCmdline(cmdline string, data interface{}) bool {
+	fmt.Printf("\n[%v]\n", cmdline)
+	return false
 }
 
 func main() {
@@ -24,8 +17,19 @@ func main() {
 	inst.Init(os.Stdin, os.Stdout)
 	defer inst.Deinit()
 
-	inst.AddCmd("ls", &Cmd{"list files and directory", lsHandler, nil})
-	inst.AddCmd("echo", &Cmd{"echo what you input", echoHandler, nil})
+	inst.SetExecute(executeCmdline, nil)
+	inst.SetCmds(
+		Item("ls"),
+		Item("lsblk"),
+		Item("git",
+			Item("clone"),
+			Item("clean"),
+			Item("log"),
+		),
+		Item("echo"),
+		Item("help"),
+	)
+	inst.cmdRoot.PrintTree(os.Stdout)
 
 	inputLoop(inst)
 }

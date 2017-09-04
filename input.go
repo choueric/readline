@@ -32,8 +32,7 @@ func backspaceHandler(inst *Instance) bool {
 }
 
 func enterHandler(inst *Instance) bool {
-	line := strings.Trim(string(inst.line), " ")
-	end := executeCmdline(inst, []byte(line))
+	end := inst.execute(string(inst.line), inst.data)
 	if !end {
 		inst.clearLine()
 		inst.printPrompt()
