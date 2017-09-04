@@ -15,9 +15,9 @@ func printCandidates(inst *Instance, candidates []string) {
 	inst.Print("\n")
 }
 
-// @cmd is the parent cmd node, recurse its sub commands and find out if
+// @cmd is the parent cmd node, find the sub-cmd whose name is @arg
 // there is a sub command matches to @arg.
-func findCmd(arg string, cmd *Cmd) *Cmd {
+func findSubCmd(arg string, cmd *Cmd) *Cmd {
 	for _, c := range cmd.subs {
 		if c.name == arg {
 			return c
@@ -27,28 +27,20 @@ func findCmd(arg string, cmd *Cmd) *Cmd {
 	return nil
 }
 
-// get all @cmd's sub commands and treat as candidates
-// TODO: add error return
-func getCmdSubs(cmd *Cmd) ([]string, error) {
-	if cmd == nil {
-		return nil, errors.New("cmd is nil")
-	}
+// get all sub commands and return as candidates
+func getCandidatesFromSubs(cmds []*Cmd) ([]string, error) {
 	var candidates []string
-	for _, c := range cmd.subs {
+	for _, c := range cmds {
 		candidates = append(candidates, c.name)
 	}
 
 	return candidates, nil
 }
 
-// find all sub commands of @cmd which have prefix of @arg
-func matchCandidates(arg string, cmd *Cmd) ([]string, error) {
-	if cmd == nil {
-		return nil, errors.New("cmd is nil")
-	}
-
+// find all commands in @cmds which have prefix of @arg
+func getCandidatesByPrefix(arg string, cmds []*Cmd) ([]string, error) {
 	var candidates []string
-	for _, c := range cmd.subs {
+	for _, c := range cmds {
 		if strings.HasPrefix(c.name, arg) {
 			candidates = append(candidates, c.name)
 		}
@@ -64,7 +56,7 @@ func getCandidates(inst *Instance) ([]string, error) {
 	inst.Log("args = %v, len(line) = %d\n", args, count)
 
 	cmdNode := inst.cmdRoot
-	candidates, err := getCmdSubs(cmdNode)
+	candidates, err := getCandidatesFromSubs(cmdNode.subs)
 	if err != nil {
 		return nil, err
 	}
@@ -76,17 +68,17 @@ func getCandidates(inst *Instance) ([]string, error) {
 		partialArg := inst.line[count-1] != ' '
 
 		if lastArg && partialArg {
-			candidates, err = matchCandidates(arg, cmdNode)
+			candidates, err = getCandidatesByPrefix(arg, cmdNode.subs)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			cmdNode = findCmd(arg, cmdNode)
+			cmdNode = findSubCmd(arg, cmdNode)
 			if cmdNode == nil {
 				return nil, errors.New(fmt.Sprintf("can not find %s", arg))
 			}
 			if lastArg {
-				candidates, err = getCmdSubs(cmdNode)
+				candidates, err = getCandidatesFromSubs(cmdNode.subs)
 				if err != nil {
 					return nil, err
 				}
