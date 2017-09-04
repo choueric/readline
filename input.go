@@ -1,9 +1,6 @@
 package main
 
-import (
-	"io"
-	"strings"
-)
+import "io"
 
 type inputHandler func(*Instance) bool
 
@@ -26,8 +23,7 @@ func backspaceHandler(inst *Instance) bool {
 	if len(inst.line) == 0 {
 		return false
 	}
-	inst.Print("\b \b")
-	inst.line = inst.line[0 : len(inst.line)-1]
+	inst.lineDel()
 	return false
 }
 
@@ -41,17 +37,37 @@ func enterHandler(inst *Instance) bool {
 }
 
 func tabHandler(inst *Instance) bool {
-	line := strings.Trim(string(inst.line), " ")
-	if len(line) == 0 {
-		acAllCmds(inst)
-		inst.Printf("%s%s", inst.prompt, string(inst.line))
-		return false
-	}
+	if inst.lastKey != CharTab { // First tab
+		candidates := getCandidates(inst)
+		if candidates == nil {
+			inst.Log("Can not find candidates\n")
+			return false
+		}
+		switch len(candidates) {
+		case 0:
+			inst.Log("TODO: use filelist completer\n")
+		case 1:
+			completeWhole(inst, candidates[0])
+		default:
+			completePartial(inst, candidates)
+		}
+	} else { // Second Tab
+		candidates := getCandidates(inst)
+		if candidates == nil {
+			inst.Log("Can not find candidates\n")
+			return false
+		}
+		switch len(candidates) {
+		case 0:
+			inst.Log("TODO: use filelist completer\n")
+		case 1:
+			inst.Log("\n")
+			panic("This can not be happen")
+		default:
+			printCandidates(inst, candidates)
+			inst.Printf("%s%s", inst.prompt, string(inst.line))
+		}
 
-	args := strings.Fields(string(line))
-	if len(args) != 0 {
-		acOneCmd(inst, args)
-		return false
 	}
 
 	return false
@@ -86,8 +102,8 @@ func inputLoop(inst *Instance) {
 		if ok {
 			end = handler(inst)
 		} else {
-			inst.line = append(inst.line, c)
-			inst.Printf("%c", c)
+			inst.lineAdd(c)
 		}
+		inst.lastKey = c
 	}
 }

@@ -6,11 +6,14 @@ import (
 	"os"
 )
 
+var debug = false
+
 type ExecuteFunc func(line string, data interface{}) bool
 
 type Instance struct {
 	cmdRoot  *Cmd
 	line     []byte
+	lastKey  byte
 	w        *bufio.Writer
 	r        *bufio.Reader
 	fd       int
@@ -61,8 +64,10 @@ func (inst *Instance) Printf(format string, v ...interface{}) {
 }
 
 func (inst *Instance) Log(format string, v ...interface{}) {
-	fmt.Fprintf(inst.w, "\n++ %s", fmt.Sprintf(format, v...))
-	inst.Flush()
+	if debug {
+		fmt.Fprintf(inst.w, "\n++ %s", fmt.Sprintf(format, v...))
+		inst.Flush()
+	}
 }
 
 func (inst *Instance) Print(v ...interface{})   { fmt.Fprint(inst.w, v...); inst.Flush() }
@@ -70,3 +75,12 @@ func (inst *Instance) Println(v ...interface{}) { fmt.Fprintln(inst.w, v...); in
 func (inst *Instance) Flush()                   { inst.w.Flush() }
 
 func (inst *Instance) clearLine() { inst.line = inst.line[0:0] }
+
+func (inst *Instance) lineAdd(c byte) {
+	inst.Printf("%c", c)
+	inst.line = append(inst.line, c)
+}
+func (inst *Instance) lineDel() {
+	inst.Print("\b \b")
+	inst.line = inst.line[0 : len(inst.line)-1]
+}
