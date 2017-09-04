@@ -52,7 +52,7 @@ func (cmd *Cmd) doPrintTree(w io.Writer, depth int, hasSibling []bool) {
 }
 
 // PrintTree prints the tree graphic started from cmd.
-func (cmd *Cmd) PrintTree(w io.Writer) {
+func (cmd *Cmd) printTree(w io.Writer) {
 	var hasSibling []bool
 	cmd.doPrintTree(w, 0, hasSibling)
 }

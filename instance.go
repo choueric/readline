@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -83,3 +84,5 @@ func (inst *Instance) lineDel() {
 	inst.Print("\b \b")
 	inst.line = inst.line[0 : len(inst.line)-1]
 }
+
+func (inst *Instance) PrintTree(w io.Writer) { inst.cmdRoot.printTree(w) }

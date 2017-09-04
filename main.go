@@ -7,7 +7,7 @@ import (
 )
 
 func executeCmdline(cmdline string, data interface{}) bool {
-	fmt.Printf("\n[%v]\n", cmdline)
+	fmt.Printf("\nexecute [%v]\n", cmdline)
 	return false
 }
 
@@ -36,7 +36,7 @@ func main() {
 		Item("echo"),
 		Item("help"),
 	)
-	inst.cmdRoot.PrintTree(os.Stdout)
+	inst.PrintTree(os.Stdout)
 
 	inputLoop(inst)
 }
