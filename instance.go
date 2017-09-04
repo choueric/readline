@@ -6,8 +6,6 @@ import (
 	"os"
 )
 
-var debug = false
-
 type ExecuteFunc func(line string, data interface{}) bool
 
 type Instance struct {
@@ -21,6 +19,7 @@ type Instance struct {
 	prompt   string
 	execute  ExecuteFunc
 	data     interface{}
+	debug    bool
 }
 
 func (inst *Instance) Init(in *os.File, out *os.File) error {
@@ -64,7 +63,7 @@ func (inst *Instance) Printf(format string, v ...interface{}) {
 }
 
 func (inst *Instance) Log(format string, v ...interface{}) {
-	if debug {
+	if inst.debug {
 		fmt.Fprintf(inst.w, "\n++ %s", fmt.Sprintf(format, v...))
 		inst.Flush()
 	}

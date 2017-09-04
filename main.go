@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 )
@@ -16,6 +17,9 @@ func main() {
 	}
 	inst.Init(os.Stdin, os.Stdout)
 	defer inst.Deinit()
+
+	flag.BoolVar(&inst.debug, "d", false, "eanble debug")
+	flag.Parse()
 
 	inst.SetExecute(executeCmdline, nil)
 	inst.SetCmds(
