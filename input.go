@@ -38,36 +38,34 @@ func enterHandler(inst *Instance) bool {
 
 func tabHandler(inst *Instance) bool {
 	if inst.lastKey != CharTab { // First tab
-		candidates := getCandidates(inst)
-		if candidates == nil {
-			inst.Log("Can not find candidates\n")
+		candidates, err := getCandidates(inst)
+		if err != nil {
+			inst.Log("1st tab error: %v\n", err)
 			return false
 		}
 		switch len(candidates) {
 		case 0:
-			inst.Log("TODO: use filelist completer\n")
+			inst.Log("TODO: use auto-completer interface\n")
 		case 1:
 			completeWhole(inst, candidates[0])
 		default:
 			completePartial(inst, candidates)
 		}
 	} else { // Second Tab
-		candidates := getCandidates(inst)
-		if candidates == nil {
-			inst.Log("Can not find candidates\n")
+		candidates, err := getCandidates(inst)
+		if err != nil {
+			inst.Log("2nd tab error: %v\n", err)
 			return false
 		}
 		switch len(candidates) {
 		case 0:
 			inst.Log("TODO: use filelist completer\n")
 		case 1:
-			inst.Log("\n")
 			panic("This can not be happen")
 		default:
 			printCandidates(inst, candidates)
 			inst.Printf("%s%s", inst.prompt, string(inst.line))
 		}
-
 	}
 
 	return false

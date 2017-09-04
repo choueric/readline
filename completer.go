@@ -1,6 +1,10 @@
 package main
 
-import "strings"
+import (
+	"errors"
+	"fmt"
+	"strings"
+)
 
 func printCandidates(inst *Instance, candidates []string) {
 	inst.Print("\n")
@@ -53,40 +57,34 @@ func matchCandidates(arg string, cmd *Cmd) []string {
 }
 
 // check the inst.line and find the candidates
-// TODO: add error return
-func getCandidates(inst *Instance) []string {
-	var candidates []string
-
-	line := inst.line
-	args := strings.Fields(string(line))
-	count := len(line)
-
+func getCandidates(inst *Instance) ([]string, error) {
+	args := strings.Fields(string(inst.line))
+	count := len(inst.line)
 	inst.Log("args = %v, len(line) = %d\n", args, count)
 
 	cmdNode := inst.cmdRoot
-	candidates = getCmdSubs(cmdNode)
+	candidates := getCmdSubs(cmdNode)
 
 	for i, arg := range args {
 		inst.Log("process cmd [%s]\n", arg)
-		if i != len(args)-1 {
-			cmdNode = findCmd(arg, cmdNode) // find cmd response to arg
-			if cmdNode == nil {
-				return nil
-			}
+
+		lastArg := i == len(args)-1
+		partialArg := inst.line[count-1] != ' '
+
+		if lastArg && partialArg {
+			candidates = matchCandidates(arg, cmdNode)
 		} else {
-			if line[count-1] == ' ' {
-				cmdNode = findCmd(arg, cmdNode)
-				if cmdNode == nil {
-					return nil
-				}
+			cmdNode = findCmd(arg, cmdNode)
+			if cmdNode == nil {
+				return candidates, errors.New(fmt.Sprintf("can not find %s", arg))
+			}
+			if lastArg {
 				candidates = getCmdSubs(cmdNode)
-			} else {
-				candidates = matchCandidates(arg, cmdNode)
 			}
 		}
 	}
 	inst.Log("candidates: %v\n", candidates)
-	return candidates
+	return candidates, nil
 }
 
 func doComplete(inst *Instance, candidate string, space bool) {
