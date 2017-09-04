@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// TODO: print with a pretty format
 func printCandidates(inst *Instance, candidates []string) {
 	inst.Print("\n")
 	for _, n := range candidates {
@@ -28,22 +29,22 @@ func findCmd(arg string, cmd *Cmd) *Cmd {
 
 // get all @cmd's sub commands and treat as candidates
 // TODO: add error return
-func getCmdSubs(cmd *Cmd) []string {
+func getCmdSubs(cmd *Cmd) ([]string, error) {
 	if cmd == nil {
-		return nil
+		return nil, errors.New("cmd is nil")
 	}
 	var candidates []string
 	for _, c := range cmd.subs {
 		candidates = append(candidates, c.name)
 	}
 
-	return candidates
+	return candidates, nil
 }
 
 // find all sub commands of @cmd which have prefix of @arg
-func matchCandidates(arg string, cmd *Cmd) []string {
+func matchCandidates(arg string, cmd *Cmd) ([]string, error) {
 	if cmd == nil {
-		return nil
+		return nil, errors.New("cmd is nil")
 	}
 
 	var candidates []string
@@ -53,7 +54,7 @@ func matchCandidates(arg string, cmd *Cmd) []string {
 		}
 	}
 
-	return candidates
+	return candidates, nil
 }
 
 // check the inst.line and find the candidates
@@ -63,7 +64,10 @@ func getCandidates(inst *Instance) ([]string, error) {
 	inst.Log("args = %v, len(line) = %d\n", args, count)
 
 	cmdNode := inst.cmdRoot
-	candidates := getCmdSubs(cmdNode)
+	candidates, err := getCmdSubs(cmdNode)
+	if err != nil {
+		return nil, err
+	}
 
 	for i, arg := range args {
 		inst.Log("process cmd [%s]\n", arg)
@@ -72,14 +76,20 @@ func getCandidates(inst *Instance) ([]string, error) {
 		partialArg := inst.line[count-1] != ' '
 
 		if lastArg && partialArg {
-			candidates = matchCandidates(arg, cmdNode)
+			candidates, err = matchCandidates(arg, cmdNode)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			cmdNode = findCmd(arg, cmdNode)
 			if cmdNode == nil {
-				return candidates, errors.New(fmt.Sprintf("can not find %s", arg))
+				return nil, errors.New(fmt.Sprintf("can not find %s", arg))
 			}
 			if lastArg {
-				candidates = getCmdSubs(cmdNode)
+				candidates, err = getCmdSubs(cmdNode)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
@@ -110,14 +120,15 @@ func completeWhole(inst *Instance, candidate string) {
 
 // if all candidates have the same prefix, complete the common part
 // if so, return true
-func completePartial(inst *Instance, candidates []string) bool {
+// e.g. [clean], [clone]: c -> [cl]
+func completePartial(inst *Instance, candidates []string) {
 	prefix := lcp(candidates)
 	if len(prefix) != 0 {
 		doComplete(inst, prefix, false)
 	}
-	return false
 }
 
+// Via: https://rosettacode.org/wiki/Longest_common_prefix
 // lcp finds the longest common prefix of the input strings.
 // It compares by bytes instead of runes (Unicode code points).
 // It's up to the caller to do Unicode normalization if desired
