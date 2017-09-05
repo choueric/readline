@@ -10,7 +10,7 @@ import (
 type ExecuteFunc func(line string, data interface{}) bool
 
 type Instance struct {
-	cmdRoot  *Cmd
+	root     Completer
 	line     []byte
 	lastKey  byte
 	w        *bufio.Writer
@@ -42,11 +42,8 @@ func (inst *Instance) Deinit() {
 	restoreTerm(inst.fd, inst.oldState)
 }
 
-func (inst *Instance) SetCmds(cmds ...*Cmd) {
-	inst.cmdRoot = &Cmd{
-		name: "",
-		subs: cmds,
-	}
+func (inst *Instance) SetCompleter(subs ...Completer) {
+	inst.root = Cmd("", subs...)
 }
 
 func (inst *Instance) SetExecute(f ExecuteFunc, data interface{}) {
@@ -86,4 +83,4 @@ func (inst *Instance) lineDel() {
 	inst.line = inst.line[0 : len(inst.line)-1]
 }
 
-func (inst *Instance) PrintTree(w io.Writer) { inst.cmdRoot.printTree(w) }
+func (inst *Instance) PrintTree(w io.Writer) { printTree(inst.root, w) }

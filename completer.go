@@ -1,186 +1,54 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"strings"
+	"io"
 )
 
-// TODO: print with a pretty format
-func printCandidates(inst *Instance, candidates []string) {
-	inst.Print("\n")
-	for _, n := range candidates {
-		inst.Printf("%s\t", n)
-	}
-	inst.Print("\n")
+type Completer interface {
+	name() string
+	isSp() bool
+	subs() []Completer
+	getCandidates(string) []string
 }
 
-// @cmd is the parent cmd node, find the sub-cmd whose name is @arg
-// there is a sub command matches to @arg.
-func findSubCmd(arg string, cmd *Cmd) *Cmd {
-	for _, c := range cmd.subs {
-		if c.name == arg {
-			return c
-		}
-	}
-
-	return nil
-}
-
-// get all sub commands and return as candidates
-func getCandidatesFromSubs(inst *Instance, cmd *Cmd) ([]string, error) {
-	if cmd == nil {
-		return nil, errors.New("cmd is nil")
-	}
-
-	var acCmd *Cmd
-	var candidates []string
-	for _, c := range cmd.subs {
-		if c.acFunc != nil {
-			acCmd = c
-			break
-		} else {
-			candidates = append(candidates, c.name)
-		}
-	}
-
-	if acCmd != nil {
-		return acCmd.acFunc(string(inst.line)), nil
-	}
-
-	return candidates, nil
-}
-
-// find all commands in @cmds which have prefix of @arg
-func getCandidatesByPrefix(inst *Instance, arg string, cmds []*Cmd) ([]string, error) {
-	var candidates []string
-	var acCmd *Cmd
-	for _, c := range cmds {
-		if strings.HasPrefix(c.name, arg) {
-			candidates = append(candidates, c.name)
-		}
-		if c.acFunc != nil {
-			acCmd = c
-		}
-	}
-
-	if len(candidates) == 0 && acCmd != nil {
-		files := acCmd.acFunc(string(inst.line))
-		inst.Log("prefix: %s, files: [%v]\n", arg, files)
-		for _, f := range files {
-			if strings.HasPrefix(f, arg) {
-				candidates = append(candidates, f)
-			}
-		}
-	}
-
-	return candidates, nil
-}
-
-// check the inst.line and find the candidates
-func getCandidates(inst *Instance) ([]string, error) {
-	args := strings.Fields(string(inst.line))
-	count := len(inst.line)
-	inst.Log("args = %v, len(line) = %d\n", args, count)
-
-	cmdNode := inst.cmdRoot
-	candidates, err := getCandidatesFromSubs(inst, cmdNode)
-	if err != nil {
-		return nil, err
-	}
-
-	for i, arg := range args {
-		inst.Log("process cmd [%s]\n", arg)
-
-		lastArg := i == len(args)-1
-		partialArg := inst.line[count-1] != ' '
-
-		if lastArg && partialArg {
-			candidates, err = getCandidatesByPrefix(inst, arg, cmdNode.subs)
-			if err != nil {
-				return nil, err
+func doPrintTree(c Completer, w io.Writer, depth int, hasSibling []bool) {
+	for i := 0; i < depth; i++ {
+		if i != depth-1 {
+			if hasSibling[i] {
+				fmt.Fprintf(w, "│   ")
+			} else {
+				fmt.Fprintf(w, "    ")
 			}
 		} else {
-			cmdNode = findSubCmd(arg, cmdNode)
-			if cmdNode == nil {
-				return nil, errors.New(fmt.Sprintf("can not find %s", arg))
-			}
-			if lastArg {
-				candidates, err = getCandidatesFromSubs(inst, cmdNode)
-				if err != nil {
-					return nil, err
-				}
+			if hasSibling[i] {
+				fmt.Fprintln(w, "├── "+c.name())
+			} else {
+				fmt.Fprintln(w, "└── "+c.name())
 			}
 		}
 	}
-	inst.Log("candidates: %v\n", candidates)
-	return candidates, nil
-}
 
-func doComplete(inst *Instance, candidate string, space bool) {
-	args := strings.Fields(string(inst.line))
-	count := len(args)
-	if count == 0 {
-		panic("when do complete, the input can not be empty fields")
-	}
-	todo := args[len(args)-1]
-	index := strings.Index(candidate, todo) + len(todo)
-	for i := index; i < len(candidate); i++ {
-		inst.lineAdd(byte(candidate[i]))
-	}
-	if space {
-		inst.lineAdd(' ')
-	}
-}
-
-// [ls]: ls -> [ls ]
-func completeWhole(inst *Instance, candidate string) {
-	doComplete(inst, candidate, true)
-}
-
-// if all candidates have the same prefix, complete the common part
-// if so, return true
-// e.g. [clean], [clone]: c -> [cl]
-func completePartial(inst *Instance, candidates []string) bool {
-	prefix := lcp(candidates)
-	if len(prefix) != 0 {
-		doComplete(inst, prefix, false)
-		return true
+	if depth == 0 {
+		fmt.Fprintln(w, c.name())
 	}
 
-	return false
-}
-
-// Via: https://rosettacode.org/wiki/Longest_common_prefix
-// lcp finds the longest common prefix of the input strings.
-// It compares by bytes instead of runes (Unicode code points).
-// It's up to the caller to do Unicode normalization if desired
-// (e.g. see golang.org/x/text/unicode/norm).
-func lcp(l []string) string {
-	// Special cases first
-	switch len(l) {
-	case 0:
-		return ""
-	case 1:
-		return l[0]
-	}
-	// LCP of min and max (lexigraphically)
-	// is the LCP of the whole set.
-	min, max := l[0], l[0]
-	for _, s := range l[1:] {
-		switch {
-		case s < min:
-			min = s
-		case s > max:
-			max = s
+	subs := c.subs()
+	length := len(subs)
+	for i, sub := range subs {
+		if i == length-1 {
+			hasSibling = append(hasSibling, false)
+		} else {
+			hasSibling = append(hasSibling, true)
 		}
+
+		doPrintTree(sub, w, depth+1, hasSibling)
+		hasSibling = append(hasSibling[:len(hasSibling)-1])
 	}
-	for i := 0; i < len(min) && i < len(max); i++ {
-		if min[i] != max[i] {
-			return min[:i]
-		}
-	}
-	// In the case where lengths are not equal but all bytes
-	// are equal, min is the answer ("foo" < "foobar").
-	return min
+}
+
+// PrintTree prints the tree graphic started from cmd.
+func printTree(c Completer, w io.Writer) {
+	var hasSibling []bool
+	doPrintTree(c, w, 0, hasSibling)
 }

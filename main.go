@@ -22,6 +22,14 @@ func executeCmdline(line string, data interface{}) bool {
 	return false
 }
 
+// 1. '', ' '
+// 2. 'l'
+// 3. 'ls'
+// 4. 'git'
+// 5. 'git '
+// 6. 'git add '
+// 7. 'git add co'
+// 8. 'git add -'
 func main() {
 	inst := &Instance{
 		prompt: "\033[32m>>\033[0m ",
@@ -33,22 +41,22 @@ func main() {
 	flag.Parse()
 
 	inst.SetExecute(executeCmdline, nil)
-	inst.SetCmds(
-		Item("ls",
-			AcItem(FsAcFunc)),
-		Item("lsblk"),
-		Item("git",
-			Item("add",
-				Item("--intent-to-add"),
-				Item("--interactive"),
-				AcItem(FsAcFunc)),
-			Item("clone"),
-			Item("clean"),
-			Item("log",
-				Item("all"),
-				Item("verbose"))),
-		Item("exit"),
-		Item("help"),
+	inst.SetCompleter(
+		Cmd("ls",
+			ListFs()),
+		Cmd("lsblk"),
+		Cmd("git",
+			Cmd("add",
+				Cmd("--intent-to-add"),
+				Cmd("--interactive"),
+				ListFs()),
+			Cmd("clone"),
+			Cmd("clean"),
+			Cmd("log",
+				Cmd("all"),
+				Cmd("verbose"))),
+		Cmd("exit"),
+		Cmd("help"),
 	)
 	inst.PrintTree(os.Stdout)
 
