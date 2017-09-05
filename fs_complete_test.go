@@ -11,13 +11,14 @@ type TestPair struct {
 func Test_getPath(t *testing.T) {
 	testPair := []TestPair{
 		{"a", currentDir, ""},
+		{"add ", currentDir, ""},
 		{"./", currentDir, "."},
 		{".", currentDir, ""},
 		{"./a", currentDir, "."},
 		{"/u", "/", "/"},
 		{"/usr", "/", "/"},
 		{"/usr/", "/usr", "/usr"},
-		{"add ", currentDir, ""},
+		{"/usr/local/bin", "/usr/local", "/usr/local"},
 	}
 
 	for i, p := range testPair {
