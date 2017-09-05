@@ -15,12 +15,20 @@ func printCandidates(inst *Instance, candidates []string) {
 	inst.Print("\n")
 }
 
-// @cmd is the parent cmd node, find the sub-cmd whose name is @arg
-// there is a sub command matches to @arg.
-func findSubNode(arg string, cp Completer) Completer {
+// @cp is the parent cmd node and must be cmd-completer.
+// find the sub-completer whose name is @cmd
+func findSubCompleter(cmd string, cp Completer) Completer {
+	if cp == nil {
+		panic("Completer is nil")
+	}
+
+	if cp.isSp() {
+		panic("Sp Completer must not have sub completers")
+	}
+
 	subs := cp.subs()
 	for _, c := range subs {
-		if c.name() == arg {
+		if !c.isSp() && c.name() == cmd {
 			return c
 		}
 	}
@@ -28,7 +36,7 @@ func findSubNode(arg string, cp Completer) Completer {
 	return nil
 }
 
-// get all sub commands and return as candidates
+// search @cp's sub-completers and collect candidates
 func getCandidatesFromSubs(inst *Instance, cp Completer) ([]string, error) {
 	if cp == nil {
 		return nil, errors.New("Completer is nil")
@@ -58,20 +66,21 @@ func getCandidatesByPrefix(inst *Instance, arg string, cps []Completer) ([]strin
 	var candidates []string
 	var sp Completer
 	for _, c := range cps {
-		if strings.HasPrefix(c.name(), arg) {
-			candidates = append(candidates, c.name())
-		}
 		if c.isSp() {
 			sp = c
+		} else {
+			if strings.HasPrefix(c.name(), arg) {
+				candidates = append(candidates, c.name())
+			}
 		}
 	}
 
 	if len(candidates) == 0 && sp != nil {
-		files := sp.getCandidates(string(inst.line))
-		inst.Log("prefix: %s, files: [%v]\n", arg, files)
-		for _, f := range files {
-			if strings.HasPrefix(f, arg) {
-				candidates = append(candidates, f)
+		cans := sp.getCandidates(string(inst.line))
+		inst.Log("prefix: %s, candidates: [%v]\n", arg, cans)
+		for _, v := range cans {
+			if strings.HasPrefix(v, arg) {
+				candidates = append(candidates, v)
 			}
 		}
 	}
@@ -104,8 +113,8 @@ func getCandidates(inst *Instance) ([]string, error) {
 				return nil, err
 			}
 		} else {
-			inst.Log("call findSubNode, find [%s]\n", arg)
-			cp = findSubNode(arg, cp)
+			inst.Log("call findSubCompleter, find [%s]\n", arg)
+			cp = findSubCompleter(arg, cp)
 			if cp == nil {
 				inst.Log("can not find %s", arg)
 				return nil, errors.New(fmt.Sprintf("can not find %s", arg))

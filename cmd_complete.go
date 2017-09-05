@@ -17,6 +17,5 @@ func (n *cmdComplete) isSp() bool        { return false }
 func (n *cmdComplete) subs() []Completer { return n._subs }
 
 func (n *cmdComplete) getCandidates(string) []string {
-	var candidates []string
-	return candidates
+	return []string{n._name}
 }
