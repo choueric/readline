@@ -44,6 +44,11 @@ func (n *fsComplete) getCandidates(line string) ([]string, bool) {
 	return candidates, end
 }
 
+func (n *fsComplete) modifyCandidate(prefix string, input string) string {
+	index := strings.LastIndex(prefix, "/")
+	return input[index+1 : len(input)]
+}
+
 type joinFunc func(string, string, bool) string
 
 func joinDirect(p string, n string, isDir bool) string {

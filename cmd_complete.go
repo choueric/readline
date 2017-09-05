@@ -19,3 +19,5 @@ func (n *cmdComplete) subs() []Completer { return n._subs }
 func (n *cmdComplete) getCandidates(string) ([]string, bool) {
 	return []string{n._name}, true
 }
+
+func (n *cmdComplete) modifyCandidate(prefix string, input string) string { return input }

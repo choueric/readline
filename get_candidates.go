@@ -7,10 +7,12 @@ import (
 )
 
 // TODO: print with a pretty format
-func printCandidates(inst *Instance, candidates []string) {
+func printCandidates(inst *Instance, cp Completer, candidates []string) {
+	args := strings.Fields(string(inst.line))
+	prefix := args[len(args)-1]
 	inst.Print("\n")
 	for _, n := range candidates {
-		inst.Printf("%s\t", n)
+		inst.Printf("%s\t", cp.modifyCandidate(prefix, n))
 	}
 	inst.Print("\n")
 }
@@ -63,10 +65,12 @@ func getCandidatesFromSubs(inst *Instance, cp Completer) ([]string, bool, error)
 }
 
 // find all commands in @cmds which have prefix of @arg
-func getCandidatesByPrefix(inst *Instance, arg string, cps []Completer) ([]string, bool, error) {
+func getCandidatesByPrefix(inst *Instance, arg string, cp Completer) (Completer, []string, bool, error) {
 	var candidates []string
-	end := true
 	var sp Completer
+	end := true
+	currentCp := cp
+	cps := cp.subs()
 	for _, c := range cps {
 		if c.isSp() {
 			sp = c
@@ -86,13 +90,14 @@ func getCandidatesByPrefix(inst *Instance, arg string, cps []Completer) ([]strin
 			}
 		}
 		end = send
+		currentCp = sp
 	}
 
-	return candidates, end, nil
+	return currentCp, candidates, end, nil
 }
 
 // check the inst.line and find the candidates
-func getCandidates(inst *Instance) ([]string, bool, error) {
+func getCandidates(inst *Instance) (Completer, []string, bool, error) {
 	args := strings.Fields(string(inst.line))
 	count := len(inst.line)
 	inst.Log("args = %v, len(line) = %d\n", args, count)
@@ -100,7 +105,7 @@ func getCandidates(inst *Instance) ([]string, bool, error) {
 	cp := inst.root
 	candidates, end, err := getCandidatesFromSubs(inst, cp)
 	if err != nil {
-		return nil, end, err
+		return nil, nil, end, err
 	}
 
 	for i, arg := range args {
@@ -111,27 +116,27 @@ func getCandidates(inst *Instance) ([]string, bool, error) {
 			arg, lastArg, partialArg)
 
 		if lastArg && partialArg {
-			candidates, end, err = getCandidatesByPrefix(inst, arg, cp.subs())
+			cp, candidates, end, err = getCandidatesByPrefix(inst, arg, cp)
 			if err != nil {
-				return nil, end, err
+				return nil, nil, end, err
 			}
 		} else {
 			inst.Log("call findSubCompleter, find [%s]\n", arg)
 			cp = findSubCompleter(arg, cp)
 			if cp == nil {
 				inst.Log("can not find %s", arg)
-				return nil, false, errors.New(fmt.Sprintf("can not find %s", arg))
+				return nil, nil, false, errors.New(fmt.Sprintf("can not find %s", arg))
 			}
 			if lastArg {
 				candidates, end, err = getCandidatesFromSubs(inst, cp)
 				if err != nil {
-					return nil, end, err
+					return nil, nil, end, err
 				}
 			}
 		}
 	}
 	inst.Log("candidates: %v\n", candidates)
-	return candidates, end, nil
+	return cp, candidates, end, nil
 }
 
 func doComplete(inst *Instance, candidate string) {

@@ -10,6 +10,7 @@ type Completer interface {
 	isSp() bool
 	subs() []Completer
 	getCandidates(string) ([]string, bool)
+	modifyCandidate(string, string) string // for output
 }
 
 func doPrintTree(c Completer, w io.Writer, depth int, hasSibling []bool) {

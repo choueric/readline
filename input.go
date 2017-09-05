@@ -39,7 +39,7 @@ func enterHandler(inst *Instance) (byte, bool) {
 func tabHandler(inst *Instance) (byte, bool) {
 	key := byte(CharTab)
 	if inst.lastKey != CharTab { // First tab
-		candidates, end, err := getCandidates(inst)
+		_, candidates, end, err := getCandidates(inst)
 		if err != nil {
 			inst.Log("1st tab error: %v\n", err)
 			return key, false
@@ -57,7 +57,7 @@ func tabHandler(inst *Instance) (byte, bool) {
 			completePartial(inst, candidates)
 		}
 	} else { // Second Tab
-		candidates, _, err := getCandidates(inst)
+		cp, candidates, _, err := getCandidates(inst)
 		if err != nil {
 			inst.Log("2nd tab error: %v\n", err)
 			return key, false
@@ -67,7 +67,7 @@ func tabHandler(inst *Instance) (byte, bool) {
 			inst.Log("TODO: can not happen\n")
 		default:
 			inst.Log("multi candidates\n")
-			printCandidates(inst, candidates)
+			printCandidates(inst, cp, candidates)
 			inst.Printf("%s%s", inst.prompt, string(inst.line))
 		}
 	}
