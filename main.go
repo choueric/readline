@@ -30,6 +30,7 @@ func executeCmdline(line string, data interface{}) bool {
 // 6. 'git add '
 // 7. 'git add co'
 // 8. 'git add -'
+// 9. 'git add pre': command has priority to fs
 func main() {
 	inst := &Instance{
 		prompt: "\033[32m>>\033[0m ",
@@ -49,6 +50,7 @@ func main() {
 			Cmd("add",
 				Cmd("--intent-to-add"),
 				Cmd("--interactive"),
+				Cmd("pretty"),
 				ListFs()),
 			Cmd("clone"),
 			Cmd("clean"),
