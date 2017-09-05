@@ -5,15 +5,33 @@ import (
 	"io"
 )
 
+type AcFunc func(string) []string
+
 type Cmd struct {
-	name string
-	subs []*Cmd
+	name   string
+	acFunc AcFunc
+	subs   []*Cmd
 }
 
 func Item(name string, subs ...*Cmd) *Cmd {
 	return &Cmd{
 		name: name,
 		subs: subs,
+	}
+}
+
+func AcItem(f AcFunc, subs ...*Cmd) *Cmd {
+	return &Cmd{
+		acFunc: f,
+		subs:   subs,
+	}
+}
+
+func (cmd *Cmd) treeName() string {
+	if cmd.acFunc != nil {
+		return "*"
+	} else {
+		return cmd.name
 	}
 }
 
@@ -27,15 +45,15 @@ func (cmd *Cmd) doPrintTree(w io.Writer, depth int, hasSibling []bool) {
 			}
 		} else {
 			if hasSibling[i] {
-				fmt.Fprintln(w, "├── "+cmd.name)
+				fmt.Fprintln(w, "├── "+cmd.treeName())
 			} else {
-				fmt.Fprintln(w, "└── "+cmd.name)
+				fmt.Fprintln(w, "└── "+cmd.treeName())
 			}
 		}
 	}
 
 	if depth == 0 {
-		fmt.Fprintln(w, cmd.name)
+		fmt.Fprintln(w, cmd.treeName())
 	}
 
 	length := len(cmd.subs)

@@ -34,16 +34,19 @@ func main() {
 
 	inst.SetExecute(executeCmdline, nil)
 	inst.SetCmds(
-		Item("ls"),
+		Item("ls",
+			AcItem(FsAcFunc)),
 		Item("lsblk"),
 		Item("git",
+			Item("add",
+				Item("--intent-to-add"),
+				Item("--interactive"),
+				AcItem(FsAcFunc)),
 			Item("clone"),
 			Item("clean"),
 			Item("log",
 				Item("all"),
-				Item("verbose"),
-			),
-		),
+				Item("verbose"))),
 		Item("exit"),
 		Item("help"),
 	)

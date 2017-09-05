@@ -79,6 +79,7 @@ func (inst *Instance) clearLine() { inst.line = inst.line[0:0] }
 func (inst *Instance) lineAdd(c byte) {
 	inst.Printf("%c", c)
 	inst.line = append(inst.line, c)
+	inst.lastKey = c
 }
 func (inst *Instance) lineDel() {
 	inst.Print("\b \b")

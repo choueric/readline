@@ -2,7 +2,7 @@ package main
 
 import "io"
 
-type inputHandler func(*Instance) bool
+type inputHandler func(*Instance) (byte, bool)
 
 var inputMap = map[byte]inputHandler{
 	CharEOF:       eofHandler,
@@ -12,42 +12,44 @@ var inputMap = map[byte]inputHandler{
 	CharInterrupt: interruptHandler,
 }
 
-func interruptHandler(inst *Instance) bool {
+func interruptHandler(inst *Instance) (byte, bool) {
 	inst.Printf("\ngot Interrupt(Ctrl+C)\n")
 	inst.clearLine()
 	inst.printPrompt()
-	return false
+	return CharInterrupt, false
 }
 
-func backspaceHandler(inst *Instance) bool {
+func backspaceHandler(inst *Instance) (byte, bool) {
 	if len(inst.line) == 0 {
-		return false
+		return CharBackspace, false
 	}
 	inst.lineDel()
-	return false
+	return CharBackspace, false
 }
 
-func enterHandler(inst *Instance) bool {
+func enterHandler(inst *Instance) (byte, bool) {
 	end := inst.execute(string(inst.line), inst.data)
 	if !end {
 		inst.clearLine()
 		inst.printPrompt()
 	}
-	return end
+	return CharEnter, end
 }
 
-func tabHandler(inst *Instance) bool {
+func tabHandler(inst *Instance) (byte, bool) {
+	key := byte(CharTab)
 	if inst.lastKey != CharTab { // First tab
 		candidates, err := getCandidates(inst)
 		if err != nil {
 			inst.Log("1st tab error: %v\n", err)
-			return false
+			return key, false
 		}
 		switch len(candidates) {
 		case 0:
 			inst.Log("TODO: use auto-completer interface\n")
 		case 1:
 			completeWhole(inst, candidates[0])
+			key = ' '
 		default:
 			completePartial(inst, candidates)
 		}
@@ -55,7 +57,7 @@ func tabHandler(inst *Instance) bool {
 		candidates, err := getCandidates(inst)
 		if err != nil {
 			inst.Log("2nd tab error: %v\n", err)
-			return false
+			return key, false
 		}
 		switch len(candidates) {
 		case 0:
@@ -63,22 +65,23 @@ func tabHandler(inst *Instance) bool {
 		case 1:
 			panic("This can not be happen")
 		default:
+			inst.Log("multi candidates\n")
 			printCandidates(inst, candidates)
 			inst.Printf("%s%s", inst.prompt, string(inst.line))
 		}
 	}
 
-	return false
+	return key, false
 }
 
-func eofHandler(inst *Instance) bool {
+func eofHandler(inst *Instance) (byte, bool) {
 	if len(inst.line) == 0 {
 		inst.Printf("\ngot EOF(Ctrl+D)\n")
-		return true
+		return CharEOF, true
 	}
 	inst.clearLine()
 	inst.printPrompt()
-	return false
+	return CharEOF, false
 }
 
 func inputLoop(inst *Instance) {
@@ -97,11 +100,12 @@ func inputLoop(inst *Instance) {
 
 		//inst.Log("[%d]", c)
 		handler, ok := inputMap[c]
+		key := c
 		if ok {
-			end = handler(inst)
+			key, end = handler(inst)
 		} else {
 			inst.lineAdd(c)
 		}
-		inst.lastKey = c
+		inst.lastKey = key
 	}
 }

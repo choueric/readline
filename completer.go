@@ -28,21 +28,49 @@ func findSubCmd(arg string, cmd *Cmd) *Cmd {
 }
 
 // get all sub commands and return as candidates
-func getCandidatesFromSubs(cmds []*Cmd) ([]string, error) {
+func getCandidatesFromSubs(inst *Instance, cmd *Cmd) ([]string, error) {
+	if cmd == nil {
+		return nil, errors.New("cmd is nil")
+	}
+
+	var acCmd *Cmd
 	var candidates []string
-	for _, c := range cmds {
-		candidates = append(candidates, c.name)
+	for _, c := range cmd.subs {
+		if c.acFunc != nil {
+			acCmd = c
+			break
+		} else {
+			candidates = append(candidates, c.name)
+		}
+	}
+
+	if acCmd != nil {
+		return acCmd.acFunc(string(inst.line)), nil
 	}
 
 	return candidates, nil
 }
 
 // find all commands in @cmds which have prefix of @arg
-func getCandidatesByPrefix(arg string, cmds []*Cmd) ([]string, error) {
+func getCandidatesByPrefix(inst *Instance, arg string, cmds []*Cmd) ([]string, error) {
 	var candidates []string
+	var acCmd *Cmd
 	for _, c := range cmds {
 		if strings.HasPrefix(c.name, arg) {
 			candidates = append(candidates, c.name)
+		}
+		if c.acFunc != nil {
+			acCmd = c
+		}
+	}
+
+	if len(candidates) == 0 && acCmd != nil {
+		files := acCmd.acFunc(string(inst.line))
+		inst.Log("prefix: %s, files: [%v]\n", arg, files)
+		for _, f := range files {
+			if strings.HasPrefix(f, arg) {
+				candidates = append(candidates, f)
+			}
 		}
 	}
 
@@ -56,7 +84,7 @@ func getCandidates(inst *Instance) ([]string, error) {
 	inst.Log("args = %v, len(line) = %d\n", args, count)
 
 	cmdNode := inst.cmdRoot
-	candidates, err := getCandidatesFromSubs(cmdNode.subs)
+	candidates, err := getCandidatesFromSubs(inst, cmdNode)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +96,7 @@ func getCandidates(inst *Instance) ([]string, error) {
 		partialArg := inst.line[count-1] != ' '
 
 		if lastArg && partialArg {
-			candidates, err = getCandidatesByPrefix(arg, cmdNode.subs)
+			candidates, err = getCandidatesByPrefix(inst, arg, cmdNode.subs)
 			if err != nil {
 				return nil, err
 			}
@@ -78,7 +106,7 @@ func getCandidates(inst *Instance) ([]string, error) {
 				return nil, errors.New(fmt.Sprintf("can not find %s", arg))
 			}
 			if lastArg {
-				candidates, err = getCandidatesFromSubs(cmdNode.subs)
+				candidates, err = getCandidatesFromSubs(inst, cmdNode)
 				if err != nil {
 					return nil, err
 				}
@@ -113,11 +141,14 @@ func completeWhole(inst *Instance, candidate string) {
 // if all candidates have the same prefix, complete the common part
 // if so, return true
 // e.g. [clean], [clone]: c -> [cl]
-func completePartial(inst *Instance, candidates []string) {
+func completePartial(inst *Instance, candidates []string) bool {
 	prefix := lcp(candidates)
 	if len(prefix) != 0 {
 		doComplete(inst, prefix, false)
+		return true
 	}
+
+	return false
 }
 
 // Via: https://rosettacode.org/wiki/Longest_common_prefix
