@@ -9,7 +9,7 @@ type Completer interface {
 	name() string
 	isSp() bool
 	subs() []Completer
-	getCandidates(string) []string
+	getCandidates(string) ([]string, bool)
 }
 
 func doPrintTree(c Completer, w io.Writer, depth int, hasSibling []bool) {

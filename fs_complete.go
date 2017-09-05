@@ -15,32 +15,56 @@ func ListFs() Completer {
 	return &fsComplete{}
 }
 
-func (n *fsComplete) name() string { return "*fsComplete*" }
-
+func (n *fsComplete) name() string      { return "*fsComplete*" }
 func (n *fsComplete) isSp() bool        { return true }
 func (n *fsComplete) subs() []Completer { return make([]Completer, 0) }
 
-func (n *fsComplete) getCandidates(line string) []string {
+func (n *fsComplete) getCandidates(line string) ([]string, bool) {
 	var candidates []string
+	end := true
 	dir, dirPrefix := getDir(line)
-	//fmt.Printf("\n[%s, %s]\n", dir, dirPrefix)
+	//fmt.Printf("[%s, %s]\n", dir, dirPrefix)
 	files, _ := ioutil.ReadDir(dir)
+
+	join := joinAbsolute
 	switch dirPrefix {
 	case "":
-		for _, f := range files {
-			candidates = append(candidates, f.Name())
-		}
+		join = joinDirect
 	case ".":
-		for _, f := range files {
-			candidates = append(candidates, dirPrefix+"/"+f.Name())
+		join = joinCurrent
+	}
+	for _, f := range files {
+		name := f.Name()
+		if f.IsDir() {
+			end = false
 		}
-	default:
-		for _, f := range files {
-			candidates = append(candidates, path.Join(dirPrefix, f.Name()))
-		}
+		candidates = append(candidates, join(dirPrefix, name, f.IsDir()))
 	}
 
-	return candidates
+	return candidates, end
+}
+
+type joinFunc func(string, string, bool) string
+
+func joinDirect(p string, n string, isDir bool) string {
+	if isDir {
+		return n + "/"
+	}
+	return n
+}
+
+func joinCurrent(p string, n string, isDir bool) string {
+	if isDir {
+		return p + "/" + n + "/"
+	}
+	return p + "/" + n
+}
+
+func joinAbsolute(p string, n string, isDir bool) string {
+	if isDir {
+		return path.Join(p, n) + "/"
+	}
+	return path.Join(p, n)
 }
 
 func getDir(line string) (string, string) {

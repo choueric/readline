@@ -39,31 +39,32 @@ func enterHandler(inst *Instance) (byte, bool) {
 func tabHandler(inst *Instance) (byte, bool) {
 	key := byte(CharTab)
 	if inst.lastKey != CharTab { // First tab
-		candidates, err := getCandidates(inst)
+		candidates, end, err := getCandidates(inst)
 		if err != nil {
 			inst.Log("1st tab error: %v\n", err)
 			return key, false
 		}
 		switch len(candidates) {
 		case 0:
-			inst.Log("TODO: use auto-completer interface\n")
+			inst.Log("TODO: can not happen\n")
 		case 1:
 			completeWhole(inst, candidates[0])
-			key = ' '
+			if end {
+				inst.lineAdd(' ')
+				key = ' '
+			}
 		default:
 			completePartial(inst, candidates)
 		}
 	} else { // Second Tab
-		candidates, err := getCandidates(inst)
+		candidates, _, err := getCandidates(inst)
 		if err != nil {
 			inst.Log("2nd tab error: %v\n", err)
 			return key, false
 		}
 		switch len(candidates) {
-		case 0:
-			inst.Log("TODO: use filelist completer\n")
-		case 1:
-			panic("This can not be happen")
+		case 0, 1:
+			inst.Log("TODO: can not happen\n")
 		default:
 			inst.Log("multi candidates\n")
 			printCandidates(inst, candidates)
