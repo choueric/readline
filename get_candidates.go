@@ -89,6 +89,9 @@ func getCandidatesByPrefix(inst *Instance, arg string, cp Completer) (Completer,
 				candidates = append(candidates, v)
 			}
 		}
+		if len(candidates) == 1 {
+			_end = true
+		}
 		end = _end
 		currentCp = sp
 	}
