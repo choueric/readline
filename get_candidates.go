@@ -19,10 +19,19 @@ func printCandidates(inst *Instance, cp Completer, candidates []string) {
 
 // @cp is the parent cmd node and must be cmd-completer.
 // find the sub-completer whose name is @cmd
-func findSubCompleter(cmd string, cp Completer) Completer {
+func findSubCompleter(inst *Instance, cmd string, cp Completer) Completer {
 	if cp == nil {
 		panic("Completer is nil")
 	}
+
+	inst.Log("findSubCompleter: find [%s] in %v\n", cmd,
+		func(subs []Completer) []string {
+			names := make([]string, 0)
+			for _, c := range subs {
+				names = append(names, c.name())
+			}
+			return names
+		}(cp.subs()))
 
 	if cp.isSp() {
 		panic("Sp Completer must not have sub completers")
@@ -124,8 +133,7 @@ func getCandidates(inst *Instance) (Completer, []string, bool, error) {
 				return nil, nil, end, err
 			}
 		} else {
-			inst.Log("call findSubCompleter, find [%s]\n", arg)
-			cp = findSubCompleter(arg, cp)
+			cp = findSubCompleter(inst, arg, cp)
 			if cp == nil {
 				inst.Log("can not find %s", arg)
 				return nil, nil, false, errors.New(fmt.Sprintf("can not find %s", arg))
