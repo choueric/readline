@@ -82,14 +82,14 @@ func getCandidatesByPrefix(inst *Instance, arg string, cp Completer) (Completer,
 	}
 
 	if len(candidates) == 0 && sp != nil {
-		cans, send := sp.getCandidates(string(inst.line))
-		inst.Log("prefix: %s, candidates: [%v]\n", arg, cans)
+		cans, _end := sp.getCandidates(string(inst.line))
+		inst.Log("prefix: %s, end: %v, candidates: [%v]\n", arg, _end, cans)
 		for _, v := range cans {
 			if strings.HasPrefix(v, arg) {
 				candidates = append(candidates, v)
 			}
 		}
-		end = send
+		end = _end
 		currentCp = sp
 	}
 
