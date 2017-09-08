@@ -60,6 +60,16 @@ func (inst *Instance) Printf(format string, v ...interface{}) {
 	inst.Flush()
 }
 
+func (inst *Instance) Print(v ...interface{}) {
+	fmt.Fprint(inst.w, v...)
+	inst.Flush()
+}
+
+func (inst *Instance) Println(v ...interface{}) {
+	fmt.Fprintln(inst.w, v...)
+	inst.Flush()
+}
+
 func (inst *Instance) Log(format string, v ...interface{}) {
 	if inst.Debug {
 		fmt.Fprintf(inst.w, "\n++ %s", fmt.Sprintf(format, v...))
@@ -67,9 +77,17 @@ func (inst *Instance) Log(format string, v ...interface{}) {
 	}
 }
 
-func (inst *Instance) Print(v ...interface{})   { fmt.Fprint(inst.w, v...); inst.Flush() }
-func (inst *Instance) Println(v ...interface{}) { fmt.Fprintln(inst.w, v...); inst.Flush() }
-func (inst *Instance) Flush()                   { inst.w.Flush() }
+func (inst *Instance) Error(v ...interface{}) {
+	fmt.Fprint(inst.w, v...)
+	inst.Flush()
+}
+
+func (inst *Instance) Errorf(format string, v ...interface{}) {
+	fmt.Fprintf(inst.w, format, v...)
+	inst.Flush()
+}
+
+func (inst *Instance) Flush() { inst.w.Flush() }
 
 func (inst *Instance) clearLine() { inst.line = inst.line[0:0] }
 
