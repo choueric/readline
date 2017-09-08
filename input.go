@@ -28,6 +28,7 @@ func backspaceHandler(inst *Instance) (byte, bool) {
 }
 
 func enterHandler(inst *Instance) (byte, bool) {
+	inst.Print("\n")
 	end := inst.execute(string(inst.line), inst.data)
 	if !end {
 		inst.clearLine()
