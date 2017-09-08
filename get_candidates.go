@@ -8,8 +8,11 @@ import (
 
 // TODO: print with a pretty format
 func printCandidates(inst *Instance, cp Completer, candidates []string) {
+	var prefix string
 	args := strings.Fields(string(inst.line))
-	prefix := args[len(args)-1]
+	if len(args) != 0 {
+		prefix = args[len(args)-1]
+	}
 	inst.Print("\n")
 	for _, n := range candidates {
 		inst.Printf("%s\t", cp.modifyCandidate(prefix, n))
