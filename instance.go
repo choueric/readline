@@ -1,4 +1,4 @@
-package main
+package readline
 
 import (
 	"bufio"
@@ -10,6 +10,7 @@ import (
 type ExecuteFunc func(line string, data interface{}) bool
 
 type Instance struct {
+	Prompt   string
 	root     Completer
 	line     []byte
 	lastKey  byte
@@ -17,10 +18,9 @@ type Instance struct {
 	r        *bufio.Reader
 	fd       int
 	oldState *State
-	prompt   string
 	execute  ExecuteFunc
 	data     interface{}
-	debug    bool
+	Debug    bool
 }
 
 func (inst *Instance) Init(in *os.File, out *os.File) error {
@@ -52,7 +52,7 @@ func (inst *Instance) SetExecute(f ExecuteFunc, data interface{}) {
 }
 
 func (inst *Instance) printPrompt() {
-	inst.Print("\n" + inst.prompt)
+	inst.Print("\n" + inst.Prompt)
 }
 
 func (inst *Instance) Printf(format string, v ...interface{}) {
@@ -61,7 +61,7 @@ func (inst *Instance) Printf(format string, v ...interface{}) {
 }
 
 func (inst *Instance) Log(format string, v ...interface{}) {
-	if inst.debug {
+	if inst.Debug {
 		fmt.Fprintf(inst.w, "\n++ %s", fmt.Sprintf(format, v...))
 		inst.Flush()
 	}

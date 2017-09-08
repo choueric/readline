@@ -1,4 +1,4 @@
-package main
+package readline
 
 import "io"
 
@@ -68,7 +68,7 @@ func tabHandler(inst *Instance) (byte, bool) {
 		default:
 			inst.Log("multi candidates\n")
 			printCandidates(inst, cp, candidates)
-			inst.Printf("%s%s", inst.prompt, string(inst.line))
+			inst.Printf("%s%s", inst.Prompt, string(inst.line))
 		}
 	}
 
@@ -85,7 +85,7 @@ func eofHandler(inst *Instance) (byte, bool) {
 	return CharEOF, false
 }
 
-func inputLoop(inst *Instance) {
+func InputLoop(inst *Instance) {
 	inst.printPrompt()
 	end := false
 	for !end {

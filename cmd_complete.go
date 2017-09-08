@@ -1,4 +1,4 @@
-package main
+package readline
 
 type cmdComplete struct {
 	_name string

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/choueric/readline"
 )
 
 func executeCmdline(line string, data interface{}) bool {
@@ -32,35 +34,35 @@ func executeCmdline(line string, data interface{}) bool {
 // 8. 'git add -'
 // 9. 'git add pre': command has priority to fs
 func main() {
-	inst := &Instance{
-		prompt: "\033[32m>>\033[0m ",
+	inst := &readline.Instance{
+		Prompt: "\033[32m>>\033[0m ",
 	}
 	inst.Init(os.Stdin, os.Stdout)
 	defer inst.Deinit()
 
-	flag.BoolVar(&inst.debug, "d", false, "eanble debug")
+	flag.BoolVar(&inst.Debug, "d", false, "eanble debug")
 	flag.Parse()
 
 	inst.SetExecute(executeCmdline, nil)
 	inst.SetCompleter(
-		Cmd("ls",
-			ListFs()),
-		Cmd("lsblk"),
-		Cmd("git",
-			Cmd("add",
-				Cmd("--intent-to-add"),
-				Cmd("--interactive"),
-				Cmd("pretty"),
-				ListFs()),
-			Cmd("clone"),
-			Cmd("clean"),
-			Cmd("log",
-				Cmd("all"),
-				Cmd("verbose"))),
-		Cmd("exit"),
-		Cmd("help"),
+		readline.Cmd("ls",
+			readline.ListFs()),
+		readline.Cmd("lsblk"),
+		readline.Cmd("git",
+			readline.Cmd("add",
+				readline.Cmd("--intent-to-add"),
+				readline.Cmd("--interactive"),
+				readline.Cmd("pretty"),
+				readline.ListFs()),
+			readline.Cmd("clone"),
+			readline.Cmd("clean"),
+			readline.Cmd("log",
+				readline.Cmd("all"),
+				readline.Cmd("verbose"))),
+		readline.Cmd("exit"),
+		readline.Cmd("help"),
 	)
 	inst.PrintTree(os.Stdout)
 
-	inputLoop(inst)
+	readline.InputLoop(inst)
 }

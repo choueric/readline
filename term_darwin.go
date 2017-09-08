@@ -1,4 +1,4 @@
-// +build darwin
+// readlinebuild darwin
 
 package main
 
