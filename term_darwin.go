@@ -1,6 +1,6 @@
 // readlinebuild darwin
 
-package main
+package readline
 
 import (
 	"syscall"
