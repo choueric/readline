@@ -8,7 +8,7 @@ type TestPair struct {
 	dirPrefix string
 }
 
-func Test_getPath(t *testing.T) {
+func Test_getDir(t *testing.T) {
 	testPair := []TestPair{
 		{"a", currentDir, ""},
 		{"add ", currentDir, ""},
@@ -24,10 +24,12 @@ func Test_getPath(t *testing.T) {
 	for i, p := range testPair {
 		output, dirPrefix := getDir(p.input)
 		if output != p.expect {
-			t.Errorf("[%d] (%s -> %s) [%s]", i, p.input, p.expect, output)
+			t.Errorf("[%d] expect wrong. ([%s] -> [%s]), output: [%s]",
+				i, p.input, p.expect, output)
 		}
 		if dirPrefix != p.dirPrefix {
-			t.Errorf("[%d] prefix (%s -> %s) [%s]", i, p.input, p.dirPrefix, dirPrefix)
+			t.Errorf("[%d] prefix wrong. ([%s] -> [%s]), output: [%s]",
+				i, p.input, p.dirPrefix, dirPrefix)
 		}
 	}
 }
