@@ -49,8 +49,10 @@ func (n *fsComplete) modifyCandidate(prefix string, input string) string {
 	return input[index+1 : len(input)]
 }
 
+// to join path with prefix, name and if the name is directory or not
 type joinFunc func(string, string, bool) string
 
+// dir prefix @p is ""
 func joinDirect(p string, n string, isDir bool) string {
 	if isDir {
 		return n + "/"
@@ -58,6 +60,7 @@ func joinDirect(p string, n string, isDir bool) string {
 	return n
 }
 
+// dir prefix @p is "."
 func joinCurrent(p string, n string, isDir bool) string {
 	if isDir {
 		return p + "/" + n + "/"
@@ -65,6 +68,7 @@ func joinCurrent(p string, n string, isDir bool) string {
 	return p + "/" + n
 }
 
+// dir prefix @p is an absolute path, like "/usr"
 func joinAbsolute(p string, n string, isDir bool) string {
 	if isDir {
 		return path.Join(p, n) + "/"
@@ -72,8 +76,9 @@ func joinAbsolute(p string, n string, isDir bool) string {
 	return path.Join(p, n)
 }
 
+// parse the cmdline @line and fetch the directory string and prefix string
 func getDir(line string) (string, string) {
-	if line[len(line)-1] == ' ' {
+	if len(line) == 0 || line[len(line)-1] == ' ' {
 		return currentDir, ""
 	}
 
