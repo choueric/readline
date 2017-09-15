@@ -65,6 +65,13 @@ func (inst *Instance) cmdInsert(c rune) {
 	inst.view.insert(c)
 }
 
+func (inst *Instance) cmdInsertStr(s string) {
+	r := []rune(s)
+	for _, c := range r {
+		inst.cmdInsert(c)
+	}
+}
+
 func (inst *Instance) cmdDel() {
 	c := inst.line.del()
 	inst.view.del(c)
