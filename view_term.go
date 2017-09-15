@@ -10,6 +10,7 @@ type viewTerm struct {
 	prompt    string
 	promptLen int           // cursor length of prompt
 	w         *bufio.Writer // for output
+	curPos    int           // cursor position on terminal
 }
 
 // make stdin raw mode and use stdout as output
@@ -22,6 +23,34 @@ func (vt *viewTerm) init(prompt string) error {
 
 func (vt *viewTerm) deinit() {
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+func (vt *viewTerm) reset() {
+	vt.curPos = 0
+	fmt.Fprint(vt.w, "\n")
+}
+
+func (vt *viewTerm) insert(c rune) {
+	vt.curPos += columnWidth(c)
+}
+
+func (vt *viewTerm) del(c rune) {
+}
+
+func (vt *viewTerm) backspace(c rune) {
+	vt.curPos = max(0, vt.curPos-columnWidth(c))
+}
+
+func (vt *viewTerm) forwardCursor(c rune, curLen int) {
+	vt.curPos = min(curLen, vt.curPos+columnWidth(c))
+}
+
+func (vt *viewTerm) backwardCursor(c rune) {
+	vt.curPos = max(0, vt.curPos-columnWidth(c))
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 func (vt *viewTerm) printPrompt() {
 	fmt.Fprint(vt.w, "\n"+vt.prompt)

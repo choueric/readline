@@ -8,14 +8,14 @@ import (
 type ExecuteFunc func(line string, data interface{}) bool
 
 type Instance struct {
-	line    cmdLine
-	view    viewTerm
-	input   inputTerm
-	root    Completer
-	lastKey byte
-	execute ExecuteFunc
-	data    interface{}
-	Debug   bool
+	line     cmdLine
+	view     viewTerm
+	input    inputTerm
+	root     Completer
+	lastChar rune
+	execute  ExecuteFunc
+	data     interface{}
+	Debug    bool
 }
 
 func New(prompt string) (*Instance, error) {
@@ -53,10 +53,37 @@ func (inst *Instance) Log(format string, v ...interface{}) {
 	}
 }
 
-func (inst *Instance) resetCmdline() {
+////////////////////////////////////////////////////////////////////////////////
+
+func (inst *Instance) cmdReset() {
 	inst.line.reset()
-	inst.Print("\n")
+	inst.view.reset()
 }
+
+func (inst *Instance) cmdInsert(c rune) {
+	inst.line.insert(c)
+	inst.view.insert(c)
+}
+
+func (inst *Instance) cmdDel() {
+}
+
+func (inst *Instance) cmdBackspace() {
+	c := inst.line.backspace()
+	inst.view.backspace(c)
+}
+
+func (inst *Instance) cmdForwardCursor() {
+	c := inst.line.forwardCursor()
+	inst.view.forwardCursor(c, inst.line.columnWidth())
+}
+
+func (inst *Instance) cmdBackwardCursor() {
+	c := inst.line.backwardCursor()
+	inst.view.backwardCursor(c)
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 func (inst *Instance) PrintTree(w io.Writer) { printTree(inst.root, w) }
 

@@ -34,9 +34,13 @@ func (it *inputTerm) readByte() (byte, error) {
 	return it.r.ReadByte()
 }
 
-type inputHandler func(*Instance) (byte, bool)
+func (it *inputTerm) readChar() (rune, int, error) {
+	return it.r.ReadRune()
+}
 
-var inputMap = map[byte]inputHandler{
+type inputHandler func(*Instance) (rune, bool)
+
+var inputMap = map[rune]inputHandler{
 	CharEOF:       eofHandler,
 	CharTab:       tabHandler,
 	CharEnter:     enterHandler,
@@ -45,18 +49,18 @@ var inputMap = map[byte]inputHandler{
 	CharESC:       escapeHandler,
 }
 
-func eofHandler(inst *Instance) (byte, bool) {
-	if inst.line.Len() == 0 {
+func eofHandler(inst *Instance) (rune, bool) {
+	if inst.line.charNum() == 0 {
 		inst.Printf("\n^D\n")
 		return CharEOF, true
 	}
-	inst.resetCmdline()
+	inst.cmdReset()
 	return CharEOF, false
 }
 
-func tabHandler(inst *Instance) (byte, bool) {
-	key := byte(CharTab)
-	if inst.lastKey != CharTab { // First tab
+func tabHandler(inst *Instance) (rune, bool) {
+	key := CharTab
+	if inst.lastChar != CharTab { // First tab
 		_, candidates, end, err := getCandidates(inst)
 		if err != nil {
 			inst.Log("1st tab error: %v\n", err)
@@ -68,7 +72,7 @@ func tabHandler(inst *Instance) (byte, bool) {
 		case 1:
 			completeWhole(inst, candidates[0])
 			if end {
-				inst.line.insert(' ')
+				inst.cmdInsert(' ')
 				key = ' '
 			}
 		default:
@@ -93,27 +97,27 @@ func tabHandler(inst *Instance) (byte, bool) {
 	return key, false
 }
 
-func enterHandler(inst *Instance) (byte, bool) {
+func enterHandler(inst *Instance) (rune, bool) {
 	inst.Print("\n")
 	end := inst.execute(inst.line.String(), inst.data)
 	if !end {
-		inst.resetCmdline()
+		inst.cmdReset()
 	}
 	return CharEnter, end
 }
 
-func backspaceHandler(inst *Instance) (byte, bool) {
-	inst.line.backspace()
+func backspaceHandler(inst *Instance) (rune, bool) {
+	inst.cmdBackspace()
 	return CharBackspace, false
 }
 
-func interruptHandler(inst *Instance) (byte, bool) {
-	inst.resetCmdline()
+func interruptHandler(inst *Instance) (rune, bool) {
+	inst.cmdReset()
 	inst.Printf("^C\n")
 	return CharInterrupt, false
 }
 
-func escapeHandler(inst *Instance) (byte, bool) {
+func escapeHandler(inst *Instance) (rune, bool) {
 	c1, _ := inst.input.readByte()
 	c2, _ := inst.input.readByte()
 	if c1 != '[' {
@@ -122,9 +126,9 @@ func escapeHandler(inst *Instance) (byte, bool) {
 
 	switch c2 {
 	case 'C': // arrow right
-		inst.line.forwardCursor()
+		inst.cmdForwardCursor()
 	case 'D': // arrow left
-		inst.line.backwardCursor()
+		inst.cmdBackwardCursor()
 	default:
 	}
 
@@ -135,7 +139,7 @@ func InputLoop(inst *Instance) {
 	inst.line.reset()
 	inst.view.printPrompt()
 	for {
-		c, err := inst.input.readByte()
+		c, w, err := inst.input.readChar()
 		if err != nil {
 			if err == io.EOF {
 				inst.Printf("got EOF\n")
@@ -145,22 +149,23 @@ func InputLoop(inst *Instance) {
 			break
 		}
 
-		//inst.Log("[%d]", c)
+		inst.Log("[%q:%d]", c, w)
+		// inst.Log("\n++ [%q:%d]", c, w)
 		handler, ok := inputMap[c]
 		if ok {
 			key, end := handler(inst)
 			if end {
 				break
 			}
-			inst.lastKey = key
+			inst.lastChar = key
 		} else {
-			inst.line.insert(c)
-			inst.lastKey = c
+			inst.cmdInsert(c)
+			inst.lastChar = c
 		}
 
 		inst.view.clearLine()
 		inst.Print(inst.view.prompt + inst.line.String())
-		inst.view.setCursor(inst.line.curPos)
+		inst.view.setCursor(inst.view.curPos)
 		inst.view.flush()
 	}
 }

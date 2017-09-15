@@ -20,3 +20,13 @@ func min(a, b int) int {
 	}
 	return b
 }
+
+// TODO: improve this method
+func columnWidth(c rune) int {
+	w := len(string(c))
+	if w == 1 {
+		return 1
+	} else {
+		return 2
+	}
+}
