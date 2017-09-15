@@ -16,6 +16,8 @@ entities, depending on the specific interpreter and its configuration.
 - [X] add self-defined auto-complete interface.
 - [X] add auto-complete interface for list files and directories.
 - [X] use completer
+- [ ] multi-line input strings, single-line input strings that are long enough
+	  to wrap,
 
 - [o] separate it to a library 
 - [ ] can not auto-complete multi sub-commands as options, like
