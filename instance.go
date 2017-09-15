@@ -18,21 +18,22 @@ type Instance struct {
 	Debug   bool
 }
 
-func (inst *Instance) Init(prompt string) error {
+func New(prompt string) (*Instance, error) {
+	inst := &Instance{}
 	err := inst.view.init(prompt)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = inst.input.init()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return inst, nil
 }
 
-func (inst *Instance) Deinit() {
+func (inst *Instance) Destroy() {
 	inst.view.deinit()
 	inst.input.deinit()
 }

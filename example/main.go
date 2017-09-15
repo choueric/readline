@@ -34,9 +34,12 @@ func executeCmdline(line string, data interface{}) bool {
 // 8. 'git add -'
 // 9. 'git add pre': command has priority to fs
 func main() {
-	inst := &readline.Instance{}
-	inst.Init("\033[32m>>\033[0m ")
-	defer inst.Deinit()
+	inst, err := readline.New("\033[32m>>\033[0m ")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer inst.Destroy()
 
 	flag.BoolVar(&inst.Debug, "d", false, "eanble debug")
 	flag.Parse()
