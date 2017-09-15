@@ -163,7 +163,7 @@ func doComplete(inst *Instance, candidate string) {
 	todo := args[len(args)-1]
 	index := strings.Index(candidate, todo) + len(todo)
 	for i := index; i < len(candidate); i++ {
-		inst.lineAdd(byte(candidate[i]))
+		inst.line.insert(byte(candidate[i]))
 	}
 }
 

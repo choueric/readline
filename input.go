@@ -68,7 +68,7 @@ func tabHandler(inst *Instance) (byte, bool) {
 		case 1:
 			completeWhole(inst, candidates[0])
 			if end {
-				inst.lineAdd(' ')
+				inst.line.insert(' ')
 				key = ' '
 			}
 		default:

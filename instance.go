@@ -81,10 +81,4 @@ func (inst *Instance) resetCmdline() {
 	inst.Print("\n")
 }
 
-func (inst *Instance) lineAdd(c byte) {
-	inst.view.Printf("%c", c)
-	inst.line.insert(c)
-	inst.lastKey = c
-}
-
 func (inst *Instance) PrintTree(w io.Writer) { printTree(inst.root, w) }
