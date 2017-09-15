@@ -59,8 +59,12 @@ func (vt *viewTerm) flush() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func (vt *viewTerm) resetCursor() {
-	fmt.Fprint(vt.w, "\033[1000D")
+func (vt *viewTerm) resetCursor(afterPrompt bool) {
+	if afterPrompt {
+		fmt.Fprintf(vt.w, "\033[%dD", vt.promptLen)
+	} else {
+		fmt.Fprint(vt.w, "\033[1000D")
+	}
 }
 
 func (vt *viewTerm) clearLine() {

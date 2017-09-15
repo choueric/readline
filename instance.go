@@ -72,14 +72,20 @@ func (inst *Instance) Errorf(format string, v ...interface{}) {
 	inst.view.Printf(format, v...)
 }
 
-func (inst *Instance) clearLine() { inst.line.line = inst.line.line[0:0] }
+func (inst *Instance) clearLine() {
+	inst.line.reset()
+}
+
+func (inst *Instance) resetCmdline() {
+	inst.line.reset()
+	inst.view.printPrompt()
+	inst.view.resetCursor(true)
+}
 
 func (inst *Instance) lineAdd(c byte) {
 	inst.view.Printf("%c", c)
 	inst.line.insert(c)
 	inst.lastKey = c
-}
-func (inst *Instance) lineDel() {
 }
 
 func (inst *Instance) PrintTree(w io.Writer) { printTree(inst.root, w) }

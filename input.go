@@ -59,18 +59,24 @@ var inputMap = map[byte]inputHandler{
 	CharInterrupt: interruptHandler,
 }
 
+func eofHandler(inst *Instance) (byte, bool) {
+	if inst.line.Len() == 0 {
+		inst.Printf("\ngot EOF(Ctrl+D)\n")
+		return CharEOF, true
+	}
+	inst.Print("\n")
+	inst.resetCmdline()
+	return CharEOF, false
+}
+
 func interruptHandler(inst *Instance) (byte, bool) {
 	inst.Printf("\ngot Interrupt(Ctrl+C)\n")
-	inst.clearLine()
-	inst.view.printPrompt()
+	inst.resetCmdline()
 	return CharInterrupt, false
 }
 
 func backspaceHandler(inst *Instance) (byte, bool) {
-	if inst.line.Len() == 0 {
-		return CharBackspace, false
-	}
-	inst.lineDel()
+	inst.line.backspace()
 	return CharBackspace, false
 }
 
@@ -78,8 +84,7 @@ func enterHandler(inst *Instance) (byte, bool) {
 	inst.Print("\n")
 	end := inst.execute(inst.line.String(), inst.data)
 	if !end {
-		inst.clearLine()
-		inst.view.printPrompt()
+		inst.resetCmdline()
 	}
 	return CharEnter, end
 }
@@ -123,21 +128,10 @@ func tabHandler(inst *Instance) (byte, bool) {
 	return key, false
 }
 
-func eofHandler(inst *Instance) (byte, bool) {
-	if inst.line.Len() == 0 {
-		inst.Printf("\ngot EOF(Ctrl+D)\n")
-		return CharEOF, true
-	}
-	inst.clearLine()
-	inst.view.printPrompt()
-	return CharEOF, false
-}
-
 func InputLoop(inst *Instance) {
 	inst.line.reset()
 	inst.view.printPrompt()
-	end := false
-	for !end {
+	for {
 		c, err := inst.input.readByte()
 		if err != nil {
 			if err == io.EOF {
@@ -145,22 +139,25 @@ func InputLoop(inst *Instance) {
 			} else {
 				inst.Printf("error: %v\n", err)
 			}
-			end = true
+			break
 		}
 
 		//inst.Log("[%d]", c)
 		handler, ok := inputMap[c]
-		key := c
 		if ok {
-			key, end = handler(inst)
+			key, end := handler(inst)
+			if end {
+				break
+			}
+			inst.lastKey = key
 		} else {
 			inst.line.insert(c)
+			inst.lastKey = c
 		}
-		inst.lastKey = key
 
 		inst.view.clearLine()
 		inst.view.Print(inst.view.prompt + inst.line.String())
-		inst.view.resetCursor()
+		inst.view.resetCursor(false)
 		inst.view.setCursor(inst.line.curPos)
 		inst.view.flush()
 	}
