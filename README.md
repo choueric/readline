@@ -1,6 +1,9 @@
 # readline
 
-library for command line auto-completion 
+Golang imitation of library readline for command line operations, including
+line-editing shortcut keys and auto-completion.
+
+Support multi-byte encoding.
 
 # Usage
 
