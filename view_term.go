@@ -4,18 +4,19 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"time"
 )
 
 type viewTerm struct {
-	prompt string
-	w      *bufio.Writer // for output
+	prompt    string
+	promptLen int           // cursor length of prompt
+	w         *bufio.Writer // for output
 }
 
 // make stdin raw mode and use stdout as output
 func (vt *viewTerm) init(prompt string) error {
 	vt.w = bufio.NewWriter(os.Stdout)
 	vt.prompt = prompt
+	vt.promptLen = len(stripEscapeCode(prompt))
 	return nil
 }
 
@@ -52,18 +53,37 @@ func (vt *viewTerm) printPrompt() {
 	vt.w.Flush()
 }
 
+func (vt *viewTerm) flush() {
+	vt.w.Flush()
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+func (vt *viewTerm) resetCursor() {
+	fmt.Fprint(vt.w, "\033[1000D")
+}
+
+func (vt *viewTerm) clearLine() {
+	fmt.Fprint(vt.w, "\033[1000D")
+	fmt.Fprint(vt.w, "\033[0K")
+}
+
+func (vt *viewTerm) setCursor(pos int) {
+	pos += vt.promptLen
+	if pos != 0 {
+		fmt.Fprintf(vt.w, "\033[%dC", pos)
+	}
+}
+
 func (vt *viewTerm) forwardCursor() {
-	fmt.Fprintf(vt.w, "\033[2C")
-	time.Sleep(time.Second * 1)
+	fmt.Fprint(vt.w, "\033[2C")
 }
 
 func (vt *viewTerm) backwardCursor() {
-	fmt.Fprintf(vt.w, "\033[2D")
-	time.Sleep(time.Second * 1)
+	fmt.Fprint(vt.w, "\033[2D")
 }
 
 func (vt *viewTerm) insertRune(r rune) {
-	fmt.Fprintf(vt.w, string(r))
+	fmt.Fprint(vt.w, string(r))
 	vt.w.Flush()
-	time.Sleep(time.Second * 1)
 }

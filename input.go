@@ -134,6 +134,7 @@ func eofHandler(inst *Instance) (byte, bool) {
 }
 
 func InputLoop(inst *Instance) {
+	inst.line.reset()
 	inst.view.printPrompt()
 	end := false
 	for !end {
@@ -156,5 +157,11 @@ func InputLoop(inst *Instance) {
 			inst.line.insert(c)
 		}
 		inst.lastKey = key
+
+		inst.view.clearLine()
+		inst.view.Print(inst.view.prompt + inst.line.String())
+		inst.view.resetCursor()
+		inst.view.setCursor(inst.line.curPos)
+		inst.view.flush()
 	}
 }
