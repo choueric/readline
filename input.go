@@ -153,7 +153,7 @@ func InputLoop(inst *Instance) {
 		if ok {
 			key, end = handler(inst)
 		} else {
-			inst.lineAdd(c)
+			inst.line.insert(c)
 		}
 		inst.lastKey = key
 	}

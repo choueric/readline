@@ -76,7 +76,7 @@ func (inst *Instance) clearLine() { inst.line.line = inst.line.line[0:0] }
 
 func (inst *Instance) lineAdd(c byte) {
 	inst.view.Printf("%c", c)
-	inst.line.insertRune(rune(c))
+	inst.line.insert(c)
 	inst.lastKey = c
 }
 func (inst *Instance) lineDel() {
