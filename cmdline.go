@@ -52,10 +52,14 @@ func (cl *cmdLine) backwardCursor() int {
 	return cl.curPos
 }
 
+func (cl *cmdLine) Len() int {
+	return len(cl.line)
+}
+
 func (cl cmdLine) String() string {
 	return string(cl.line)
 }
 
-func (cl cmdLine) toString() string {
+func (cl cmdLine) prettyStr() string {
 	return fmt.Sprintf("(%s, %d)", string(cl.line), cl.curPos)
 }

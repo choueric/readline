@@ -1,6 +1,53 @@
 package readline
 
-import "io"
+import (
+	"bufio"
+	"io"
+	"os"
+)
+
+/*
+   Clear Screen: \u001b[{n}J clears the screen
+       n=0 clears from cursor until end of screen,
+       n=1 clears from cursor to beginning of screen
+       n=2 clears entire screen
+   Clear Line: \u001b[{n}K clears the current line
+       n=0 clears from cursor to end of line
+       n=1 clears from cursor to start of line
+       n=2 clears entire line
+*/
+
+const (
+	ESC = 0x1b // \033
+)
+
+type inputTerm struct {
+	r        *bufio.Reader // for input
+	termFd   int           // for setting the terminal input
+	oldState *State        // old state of terminal
+}
+
+func (it *inputTerm) init() error {
+	it.termFd = int(os.Stdin.Fd())
+	oldState, err := MakeRaw(it.termFd)
+	if err != nil {
+		panic(err)
+		return err
+	}
+	it.oldState = oldState
+
+	it.r = bufio.NewReader(os.Stdin)
+
+	return nil
+}
+
+func (it *inputTerm) deinit() {
+	restoreTerm(it.termFd, it.oldState)
+}
+
+func (it *inputTerm) readByte() (byte, error) {
+	return it.r.ReadByte()
+}
 
 type inputHandler func(*Instance) (byte, bool)
 
@@ -15,12 +62,12 @@ var inputMap = map[byte]inputHandler{
 func interruptHandler(inst *Instance) (byte, bool) {
 	inst.Printf("\ngot Interrupt(Ctrl+C)\n")
 	inst.clearLine()
-	inst.printPrompt()
+	inst.view.printPrompt()
 	return CharInterrupt, false
 }
 
 func backspaceHandler(inst *Instance) (byte, bool) {
-	if len(inst.line) == 0 {
+	if inst.line.Len() == 0 {
 		return CharBackspace, false
 	}
 	inst.lineDel()
@@ -29,10 +76,10 @@ func backspaceHandler(inst *Instance) (byte, bool) {
 
 func enterHandler(inst *Instance) (byte, bool) {
 	inst.Print("\n")
-	end := inst.execute(string(inst.line), inst.data)
+	end := inst.execute(inst.line.String(), inst.data)
 	if !end {
 		inst.clearLine()
-		inst.printPrompt()
+		inst.view.printPrompt()
 	}
 	return CharEnter, end
 }
@@ -69,7 +116,7 @@ func tabHandler(inst *Instance) (byte, bool) {
 		default:
 			inst.Log("multi candidates\n")
 			printCandidates(inst, cp, candidates)
-			inst.Printf("%s%s", inst.Prompt, string(inst.line))
+			inst.Printf("%s%s", inst.view.prompt, inst.line.String())
 		}
 	}
 
@@ -77,20 +124,20 @@ func tabHandler(inst *Instance) (byte, bool) {
 }
 
 func eofHandler(inst *Instance) (byte, bool) {
-	if len(inst.line) == 0 {
+	if inst.line.Len() == 0 {
 		inst.Printf("\ngot EOF(Ctrl+D)\n")
 		return CharEOF, true
 	}
 	inst.clearLine()
-	inst.printPrompt()
+	inst.view.printPrompt()
 	return CharEOF, false
 }
 
 func InputLoop(inst *Instance) {
-	inst.printPrompt()
+	inst.view.printPrompt()
 	end := false
 	for !end {
-		c, err := inst.r.ReadByte()
+		c, err := inst.input.readByte()
 		if err != nil {
 			if err == io.EOF {
 				inst.Printf("got EOF\n")

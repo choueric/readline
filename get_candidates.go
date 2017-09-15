@@ -9,7 +9,7 @@ import (
 // TODO: print with a pretty format
 func printCandidates(inst *Instance, cp Completer, candidates []string) {
 	var prefix string
-	args := strings.Fields(string(inst.line))
+	args := strings.Fields(inst.line.String())
 	if len(args) != 0 {
 		prefix = args[len(args)-1]
 	}
@@ -69,7 +69,7 @@ func getCandidatesFromSubs(inst *Instance, cp Completer) ([]string, bool, error)
 	}
 
 	if sp != nil {
-		cans, end := sp.getCandidates(string(inst.line))
+		cans, end := sp.getCandidates(inst.line.String())
 		return cans, end, nil
 	}
 
@@ -94,7 +94,7 @@ func getCandidatesByPrefix(inst *Instance, arg string, cp Completer) (Completer,
 	}
 
 	if len(candidates) == 0 && sp != nil {
-		cans, _end := sp.getCandidates(string(inst.line))
+		cans, _end := sp.getCandidates(inst.line.String())
 		inst.Log("prefix: %s, end: %v, candidates: [%v]\n", arg, _end, cans)
 		for _, v := range cans {
 			if strings.HasPrefix(v, arg) {
@@ -113,8 +113,9 @@ func getCandidatesByPrefix(inst *Instance, arg string, cp Completer) (Completer,
 
 // check the inst.line and find the candidates
 func getCandidates(inst *Instance) (Completer, []string, bool, error) {
-	args := strings.Fields(string(inst.line))
-	count := len(inst.line)
+	line := inst.line.String()
+	args := strings.Fields(line)
+	count := len(line)
 	inst.Log("args = %v, len(line) = %d\n", args, count)
 
 	cp := inst.root
@@ -126,7 +127,7 @@ func getCandidates(inst *Instance) (Completer, []string, bool, error) {
 	for i, arg := range args {
 
 		lastArg := i == len(args)-1
-		partialArg := inst.line[count-1] != ' '
+		partialArg := line[count-1] != ' '
 		inst.Log("process cmd [%s], lastArg: %v, partialArg: %v\n",
 			arg, lastArg, partialArg)
 
@@ -154,7 +155,7 @@ func getCandidates(inst *Instance) (Completer, []string, bool, error) {
 }
 
 func doComplete(inst *Instance, candidate string) {
-	args := strings.Fields(string(inst.line))
+	args := strings.Fields(inst.line.String())
 	count := len(args)
 	if count == 0 {
 		panic("when do complete, the input can not be empty fields")
