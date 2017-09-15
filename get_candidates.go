@@ -13,11 +13,11 @@ func printCandidates(inst *Instance, cp Completer, candidates []string) {
 	if len(args) != 0 {
 		prefix = args[len(args)-1]
 	}
-	inst.Print("\n")
+	inst.view.Print("\n")
 	for _, n := range candidates {
-		inst.Printf("%s\t", cp.modifyCandidate(prefix, n))
+		inst.view.Printf("%s\t", cp.modifyCandidate(prefix, n))
 	}
-	inst.Print("\n")
+	inst.view.Print("\n")
 }
 
 // @cp is the parent cmd node and must be cmd-completer.

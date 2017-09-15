@@ -47,7 +47,7 @@ var inputMap = map[byte]inputHandler{
 
 func eofHandler(inst *Instance) (byte, bool) {
 	if inst.line.Len() == 0 {
-		inst.Printf("\n^D\n")
+		inst.view.Printf("\n^D\n")
 		return CharEOF, true
 	}
 	inst.resetCmdline()
@@ -86,7 +86,7 @@ func tabHandler(inst *Instance) (byte, bool) {
 		default:
 			inst.Log("multi candidates\n")
 			printCandidates(inst, cp, candidates)
-			inst.Printf("%s%s", inst.view.prompt, inst.line.String())
+			inst.view.Printf("%s%s", inst.view.prompt, inst.line.String())
 		}
 	}
 
@@ -108,7 +108,7 @@ func backspaceHandler(inst *Instance) (byte, bool) {
 
 func interruptHandler(inst *Instance) (byte, bool) {
 	inst.resetCmdline()
-	inst.Printf("^C\n")
+	inst.view.Printf("^C\n")
 	return CharInterrupt, false
 }
 
@@ -137,9 +137,9 @@ func InputLoop(inst *Instance) {
 		c, err := inst.input.readByte()
 		if err != nil {
 			if err == io.EOF {
-				inst.Printf("got EOF\n")
+				inst.view.Printf("got EOF\n")
 			} else {
-				inst.Printf("error: %v\n", err)
+				inst.view.Printf("error: %v\n", err)
 			}
 			break
 		}
