@@ -22,11 +22,13 @@ func (cl *cmdLine) insert(c rune) {
 }
 
 // delete the character under the cursor, then cursor position does not change
-func (cl *cmdLine) del() {
+func (cl *cmdLine) del() rune {
 	if len(cl.line) == 0 || cl.index == len(cl.line) {
-		return
+		return 0
 	}
+	c := cl.line[cl.index]
 	cl.line = append(cl.line[:cl.index], cl.line[cl.index+1:]...)
+	return c
 }
 
 // backspace the character before the cursor, then cursor position reduces one

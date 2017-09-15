@@ -120,6 +120,7 @@ func interruptHandler(inst *Instance) (rune, bool) {
 func escapeHandler(inst *Instance) (rune, bool) {
 	c1, _ := inst.input.readByte()
 	c2, _ := inst.input.readByte()
+	inst.Log("  %q%q", c1, c2)
 	if c1 != '[' {
 		panic("wrong patter for escape code")
 	}
@@ -129,6 +130,12 @@ func escapeHandler(inst *Instance) (rune, bool) {
 		inst.cmdForwardCursor()
 	case 'D': // arrow left
 		inst.cmdBackwardCursor()
+	case '3': // delete
+		c, _ := inst.input.readByte()
+		if c != '~' {
+			panic("delete need ~ at the end.")
+		}
+		inst.cmdDel()
 	default:
 	}
 
@@ -142,15 +149,14 @@ func InputLoop(inst *Instance) {
 		c, w, err := inst.input.readChar()
 		if err != nil {
 			if err == io.EOF {
-				inst.Printf("got EOF\n")
+				inst.Printf("got EOF error\n")
 			} else {
 				inst.Printf("error: %v\n", err)
 			}
 			break
 		}
 
-		inst.Log("[%q:%d]", c, w)
-		// inst.Log("\n++ [%q:%d]", c, w)
+		inst.Log("[%q(%d):%d]", c, c, w)
 		handler, ok := inputMap[c]
 		if ok {
 			key, end := handler(inst)

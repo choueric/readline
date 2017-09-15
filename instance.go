@@ -49,7 +49,7 @@ func (inst *Instance) SetExecute(f ExecuteFunc, data interface{}) {
 
 func (inst *Instance) Log(format string, v ...interface{}) {
 	if inst.Debug {
-		inst.Printf("\n++ %s", fmt.Sprintf(format, v...))
+		inst.Printf("\n++ %s\n", fmt.Sprintf(format, v...))
 	}
 }
 
@@ -66,6 +66,8 @@ func (inst *Instance) cmdInsert(c rune) {
 }
 
 func (inst *Instance) cmdDel() {
+	c := inst.line.del()
+	inst.view.del(c)
 }
 
 func (inst *Instance) cmdBackspace() {
