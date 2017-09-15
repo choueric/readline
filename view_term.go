@@ -23,31 +23,6 @@ func (vt *viewTerm) init(prompt string) error {
 func (vt *viewTerm) deinit() {
 }
 
-func (vt *viewTerm) Printf(format string, v ...interface{}) {
-	fmt.Fprintf(vt.w, format, v...)
-	vt.w.Flush()
-}
-
-func (vt *viewTerm) Print(v ...interface{}) {
-	fmt.Fprint(vt.w, v...)
-	vt.w.Flush()
-}
-
-func (vt *viewTerm) Println(v ...interface{}) {
-	fmt.Fprintln(vt.w, v...)
-	vt.w.Flush()
-}
-
-func (vt *viewTerm) Error(v ...interface{}) {
-	fmt.Fprint(vt.w, v...)
-	vt.w.Flush()
-}
-
-func (vt *viewTerm) Errorf(format string, v ...interface{}) {
-	fmt.Fprintf(vt.w, format, v...)
-	vt.w.Flush()
-}
-
 func (vt *viewTerm) printPrompt() {
 	fmt.Fprint(vt.w, "\n"+vt.prompt)
 	vt.w.Flush()

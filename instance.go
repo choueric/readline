@@ -48,13 +48,38 @@ func (inst *Instance) SetExecute(f ExecuteFunc, data interface{}) {
 
 func (inst *Instance) Log(format string, v ...interface{}) {
 	if inst.Debug {
-		inst.view.Printf("\n++ %s", fmt.Sprintf(format, v...))
+		inst.Printf("\n++ %s", fmt.Sprintf(format, v...))
 	}
 }
 
 func (inst *Instance) resetCmdline() {
 	inst.line.reset()
-	inst.view.Print("\n")
+	inst.Print("\n")
 }
 
 func (inst *Instance) PrintTree(w io.Writer) { printTree(inst.root, w) }
+
+func (inst *Instance) Printf(format string, v ...interface{}) {
+	fmt.Fprintf(inst.view.w, format, v...)
+	inst.view.w.Flush()
+}
+
+func (inst *Instance) Print(v ...interface{}) {
+	fmt.Fprint(inst.view.w, v...)
+	inst.view.w.Flush()
+}
+
+func (inst *Instance) Println(v ...interface{}) {
+	fmt.Fprintln(inst.view.w, v...)
+	inst.view.w.Flush()
+}
+
+func (inst *Instance) Error(v ...interface{}) {
+	fmt.Fprint(inst.view.w, v...)
+	inst.view.w.Flush()
+}
+
+func (inst *Instance) Errorf(format string, v ...interface{}) {
+	fmt.Fprintf(inst.view.w, format, v...)
+	inst.view.w.Flush()
+}

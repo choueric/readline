@@ -19,7 +19,7 @@ func executeCmdline(line string, data interface{}) bool {
 	case "exit":
 		return true
 	default:
-		fmt.Printf("\nexecute [%v]\n", cmdline)
+		fmt.Printf("execute [%v]\n", cmdline)
 	}
 	return false
 }
