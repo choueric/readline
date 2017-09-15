@@ -41,21 +41,13 @@ func (cl *cmdLine) backspace() {
 }
 
 // forward the cursor (rightward actually)
-func (cl *cmdLine) forwardCursor() int {
-	if cl.curPos == len(cl.line) {
-		return cl.curPos
-	}
-	cl.curPos++
-	return cl.curPos
+func (cl *cmdLine) forwardCursor() {
+	cl.curPos = min(len(cl.line), cl.curPos+1)
 }
 
 // backward the cursor (leftward)
-func (cl *cmdLine) backwardCursor() int {
-	if cl.curPos == 0 {
-		return cl.curPos
-	}
-	cl.curPos--
-	return cl.curPos
+func (cl *cmdLine) backwardCursor() {
+	cl.curPos = max(0, cl.curPos-1)
 }
 
 func (cl *cmdLine) Len() int {

@@ -59,35 +59,15 @@ func (vt *viewTerm) flush() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func (vt *viewTerm) resetCursor(afterPrompt bool) {
-	if afterPrompt {
-		fmt.Fprintf(vt.w, "\033[%dD", vt.promptLen)
-	} else {
-		fmt.Fprint(vt.w, "\033[1000D")
-	}
-}
-
 func (vt *viewTerm) clearLine() {
 	fmt.Fprint(vt.w, "\033[1000D")
 	fmt.Fprint(vt.w, "\033[0K")
 }
 
 func (vt *viewTerm) setCursor(pos int) {
+	fmt.Fprint(vt.w, "\033[1000D")
 	pos += vt.promptLen
 	if pos != 0 {
 		fmt.Fprintf(vt.w, "\033[%dC", pos)
 	}
-}
-
-func (vt *viewTerm) forwardCursor() {
-	fmt.Fprint(vt.w, "\033[2C")
-}
-
-func (vt *viewTerm) backwardCursor() {
-	fmt.Fprint(vt.w, "\033[2D")
-}
-
-func (vt *viewTerm) insertRune(r rune) {
-	fmt.Fprint(vt.w, string(r))
-	vt.w.Flush()
 }

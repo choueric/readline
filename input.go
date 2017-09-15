@@ -47,10 +47,9 @@ var inputMap = map[byte]inputHandler{
 
 func eofHandler(inst *Instance) (byte, bool) {
 	if inst.line.Len() == 0 {
-		inst.Printf("\ngot EOF(Ctrl+D)\n")
+		inst.Printf("\n^D\n")
 		return CharEOF, true
 	}
-	inst.Print("\n")
 	inst.resetCmdline()
 	return CharEOF, false
 }
@@ -95,7 +94,6 @@ func tabHandler(inst *Instance) (byte, bool) {
 }
 
 func enterHandler(inst *Instance) (byte, bool) {
-	inst.Print("\n")
 	end := inst.execute(inst.line.String(), inst.data)
 	if !end {
 		inst.resetCmdline()
@@ -109,8 +107,8 @@ func backspaceHandler(inst *Instance) (byte, bool) {
 }
 
 func interruptHandler(inst *Instance) (byte, bool) {
-	inst.Printf("\ngot Interrupt(Ctrl+C)\n")
 	inst.resetCmdline()
+	inst.Printf("^C\n")
 	return CharInterrupt, false
 }
 
@@ -161,7 +159,6 @@ func InputLoop(inst *Instance) {
 
 		inst.view.clearLine()
 		inst.view.Print(inst.view.prompt + inst.line.String())
-		inst.view.resetCursor(false)
 		inst.view.setCursor(inst.line.curPos)
 		inst.view.flush()
 	}

@@ -46,6 +46,8 @@ func (inst *Instance) SetExecute(f ExecuteFunc, data interface{}) {
 	inst.data = data
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 func (inst *Instance) Printf(format string, v ...interface{}) {
 	inst.view.Printf(format, v...)
 }
@@ -72,14 +74,11 @@ func (inst *Instance) Errorf(format string, v ...interface{}) {
 	inst.view.Printf(format, v...)
 }
 
-func (inst *Instance) clearLine() {
-	inst.line.reset()
-}
+////////////////////////////////////////////////////////////////////////////////
 
 func (inst *Instance) resetCmdline() {
 	inst.line.reset()
-	inst.view.printPrompt()
-	inst.view.resetCursor(true)
+	inst.Print("\n")
 }
 
 func (inst *Instance) lineAdd(c byte) {
