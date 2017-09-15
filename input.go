@@ -42,6 +42,7 @@ var inputMap = map[byte]inputHandler{
 	CharEnter:     enterHandler,
 	CharBackspace: backspaceHandler,
 	CharInterrupt: interruptHandler,
+	CharESC:       escapeHandler,
 }
 
 func eofHandler(inst *Instance) (byte, bool) {
@@ -111,6 +112,24 @@ func interruptHandler(inst *Instance) (byte, bool) {
 	inst.Printf("\ngot Interrupt(Ctrl+C)\n")
 	inst.resetCmdline()
 	return CharInterrupt, false
+}
+
+func escapeHandler(inst *Instance) (byte, bool) {
+	c1, _ := inst.input.readByte()
+	c2, _ := inst.input.readByte()
+	if c1 != '[' {
+		panic("wrong patter for escape code")
+	}
+
+	switch c2 {
+	case 'C': // arrow right
+		inst.line.forwardCursor()
+	case 'D': // arrow left
+		inst.line.backwardCursor()
+	default:
+	}
+
+	return CharESC, false
 }
 
 func InputLoop(inst *Instance) {

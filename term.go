@@ -9,7 +9,8 @@ const (
 	CharInterrupt = 3    // Ctrl+C
 	CharEOF       = 4    // Ctrl+D
 	CharTab       = '\t' // 9
-	CharEnter     = '\r' // 13
+	CharEnter     = '\r' // 13 or 10('\n')
+	CharESC       = 27   // ansi escape code
 	CharBackspace = 127
 )
 
