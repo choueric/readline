@@ -54,26 +54,6 @@ func eofHandler(inst *Instance) (byte, bool) {
 	return CharEOF, false
 }
 
-func interruptHandler(inst *Instance) (byte, bool) {
-	inst.Printf("\ngot Interrupt(Ctrl+C)\n")
-	inst.resetCmdline()
-	return CharInterrupt, false
-}
-
-func backspaceHandler(inst *Instance) (byte, bool) {
-	inst.line.backspace()
-	return CharBackspace, false
-}
-
-func enterHandler(inst *Instance) (byte, bool) {
-	inst.Print("\n")
-	end := inst.execute(inst.line.String(), inst.data)
-	if !end {
-		inst.resetCmdline()
-	}
-	return CharEnter, end
-}
-
 func tabHandler(inst *Instance) (byte, bool) {
 	key := byte(CharTab)
 	if inst.lastKey != CharTab { // First tab
@@ -111,6 +91,26 @@ func tabHandler(inst *Instance) (byte, bool) {
 	}
 
 	return key, false
+}
+
+func enterHandler(inst *Instance) (byte, bool) {
+	inst.Print("\n")
+	end := inst.execute(inst.line.String(), inst.data)
+	if !end {
+		inst.resetCmdline()
+	}
+	return CharEnter, end
+}
+
+func backspaceHandler(inst *Instance) (byte, bool) {
+	inst.line.backspace()
+	return CharBackspace, false
+}
+
+func interruptHandler(inst *Instance) (byte, bool) {
+	inst.Printf("\ngot Interrupt(Ctrl+C)\n")
+	inst.resetCmdline()
+	return CharInterrupt, false
 }
 
 func InputLoop(inst *Instance) {
