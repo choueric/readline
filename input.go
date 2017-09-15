@@ -6,21 +6,6 @@ import (
 	"os"
 )
 
-/*
-   Clear Screen: \u001b[{n}J clears the screen
-       n=0 clears from cursor until end of screen,
-       n=1 clears from cursor to beginning of screen
-       n=2 clears entire screen
-   Clear Line: \u001b[{n}K clears the current line
-       n=0 clears from cursor to end of line
-       n=1 clears from cursor to start of line
-       n=2 clears entire line
-*/
-
-const (
-	ESC = 0x1b // \033
-)
-
 type inputTerm struct {
 	r        *bufio.Reader // for input
 	termFd   int           // for setting the terminal input
